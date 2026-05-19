@@ -1,0 +1,343 @@
+{
+  "brand": {
+    "name": "白猫工作室",
+    "slogan": "Web3军火库",
+    "identity": "Web3 自动化架构师，顶层基建服务商",
+    "boss_name": "白猫",
+    "differentiator": "拒绝信息差，依托自研链上监控机器人，深度渗透海外顶级付费KOL圈层"
+  },
+  "core_business": [
+    {
+      "name": "矩阵化空投埋伏",
+      "en": "Matrix Airdrop Farming",
+      "icon": "🎁",
+      "pain": "纯手工交互效率极低，极易被项目方女巫清洗，血本无归",
+      "solution": "从底层高纯净独享IP、防关联指纹环境，到全自动交互脚本的一站式基建。把拼运气的抽奖升级为工业化批量提款机"
+    },
+    {
+      "name": "链上高频套利",
+      "en": "On-Chain Arbitrage & MEV",
+      "icon": "⚡",
+      "pain": "链上机会转瞬即逝，手工操作永远跑不过科学家的机器人",
+      "solution": "依托专属高速RPC节点与定制化脚本，毫秒级捕捉DEX价格差与MEV夹子机会"
+    },
+    {
+      "name": "全天候量化交易",
+      "en": "24/7 Quantitative Trading",
+      "icon": "📈",
+      "pain": "人类无法7x24盯盘，容易被情绪干扰错失行情或深跌被套",
+      "solution": "全面接入头部CEX API，部署成熟量化模型，全天候自动捕获市场波动赚取波段利润"
+    },
+    {
+      "name": "顶级Alpha资源聚合",
+      "en": "Top Alpha Intelligence",
+      "icon": "🛰️",
+      "pain": "Web3信息极度碎片化充斥噪音，获取一手财富密码的时间与资金成本极高",
+      "solution": "自研链上监控机器人+深度渗透海外顶级付费KOL圈层，实时抓取过滤核心情报"
+    }
+  ],
+  "products": [
+    {
+      "name": "标准版",
+      "category": "空投基建套餐",
+      "target": "低成本入场",
+      "featured": false,
+      "features": [
+        "1对1教学（入门到精通）",
+        "自动化脚本库（全年更新）",
+        "脚本设备绑定 1台",
+        "赠送三件套 20套",
+        "赠送独享IP 10个",
+        "内部核心会员群",
+        "一手项目情报群",
+        "后续独享IP续费仅 0.6u",
+        "三件套源头价后续加号节省1000u+"
+      ],
+      "purchase_url": "https://web3baimao.com/",
+      "contact_required": false
+    },
+    {
+      "name": "个人副业版",
+      "category": "空投基建套餐",
+      "target": "个人玩家/副业选手",
+      "featured": false,
+      "features": [
+        "空投项目投研服务（1年）",
+        "链上/交易所套利策略+脚本",
+        "线上资讯禁言群（1年）",
+        "设备脚本使用权 1台/年",
+        "会员交流群（1年）",
+        "1v1咨询服务（1年）",
+        "KOL转发圈年会员",
+        "账号资源包 20组",
+        "普通IP 10组/月",
+        "视频教程+远程搭建"
+      ],
+      "purchase_url": "https://web3baimao.com/",
+      "contact_required": false
+    },
+    {
+      "name": "个人副业永久版",
+      "category": "空投基建套餐",
+      "target": "长期玩家",
+      "featured": true,
+      "features": [
+        "空投项目投研服务（永久）",
+        "链上/交易所套利策略+脚本",
+        "线上资讯禁言群（永久）",
+        "设备脚本使用权 1台/永久",
+        "会员交流群（永久）",
+        "1v1咨询服务（永久）",
+        "KOL转发圈永久会员",
+        "KOL转发圈分销 50%分成",
+        "账号资源包 20组",
+        "高质量IP 10组/月",
+        "视频教程+远程搭建"
+      ],
+      "purchase_url": "https://web3baimao.com/",
+      "contact_required": true,
+      "contact_note": "联系客服评估 / 预约线下考察"
+    },
+    {
+      "name": "豪华版",
+      "category": "空投基建套餐",
+      "target": "中级批量实操",
+      "featured": true,
+      "features": [
+        "1对1教学（含进阶策略）",
+        "自动化脚本库（全年更新）",
+        "脚本设备绑定 1台",
+        "赠送三件套 100套",
+        "赠送独享IP 100个",
+        "内部核心会员群",
+        "一手项目情报群",
+        "后续独享IP续费仅 0.5u",
+        "三件套源头价后续加号节省1000u+",
+        "KYC服务专属特价"
+      ],
+      "contact_required": true,
+      "contact_note": "联系客服评估 / 预约线下考察"
+    },
+    {
+      "name": "工作室版",
+      "category": "空投基建套餐",
+      "target": "团队/工作室",
+      "featured": false,
+      "features": [
+        "空投项目投研服务（永久）",
+        "链上/交易所套利策略+脚本",
+        "线上资讯禁言群（永久）",
+        "设备脚本使用权 4台/永久",
+        "会员交流群（永久）",
+        "1v1咨询服务（永久）",
+        "KOL转发圈永久会员",
+        "KOL转发圈分销 60%分成",
+        "账号资源包 200组",
+        "高质量IP 200组/月",
+        "视频教程+远程搭建",
+        "专属社群+课代表",
+        "7x24小时服务",
+        "工作室0到1解决方案"
+      ],
+      "contact_required": true,
+      "contact_note": "联系客服评估 / 预约线下考察"
+    },
+    {
+      "name": "经销商版",
+      "category": "空投基建套餐",
+      "target": "渠道代理/经销商",
+      "featured": false,
+      "features": [
+        "空投项目投研服务（永久）",
+        "链上/交易所套利策略+脚本",
+        "设备脚本使用权 4台/永久",
+        "KOL转发圈永久会员",
+        "KOL转发圈分销 80%分成",
+        "账号资源包 300组",
+        "高质量IP 300组/月",
+        "专属社群+课代表",
+        "7x24小时服务",
+        "工作室0到1解决方案",
+        "代理销售权限（阶梯分成40%-55%）",
+        "全网引流+独家玩法",
+        "数字营销资源智库",
+        "智能内容生产工具箱"
+      ],
+      "contact_required": true,
+      "contact_note": "联系客服评估 / 预约线下考察"
+    },
+    {
+      "name": "企业合伙人",
+      "category": "空投基建套餐",
+      "target": "工作室/长期共赢",
+      "featured": false,
+      "features": [
+        "1对1教学（全年服务）",
+        "自动化脚本库（全年更新）",
+        "脚本设备绑定 1台",
+        "赠送三件套 200套",
+        "赠送独享IP 200个",
+        "内部核心会员群",
+        "一手项目情报群",
+        "后续IP续费仅 0.49u以下",
+        "三件套源头价后续加号节省1000u+",
+        "KYC服务专属特价",
+        "TG十年老号源头价首起1u起售",
+        "支持线下1对1教学"
+      ],
+      "contact_required": true,
+      "contact_note": "联系客服评估 / 预约线下考察"
+    },
+    {
+      "name": "AI账号",
+      "category": "账号服务",
+      "target": "所有客户",
+      "featured": false,
+      "features": [
+        "各类主流AI账号出售",
+        "具体库存和价格请到发卡网查看"
+      ],
+      "purchase_url": "https://web3baimao.com/",
+      "contact_required": false
+    }
+  ],
+  "kol_circle": {
+    "name": "KOL信息转发圈",
+    "description": "亚洲大型币圈顶级策略实时转发群 — 各大主流KOL策略聚合",
+    "pricing": [
+      {
+        "plan": "月付",
+        "note": "体验全部功能"
+      },
+      {
+        "plan": "季付",
+        "note": "立省32U"
+      },
+      {
+        "plan": "年付",
+        "note": "立省212U"
+      },
+      {
+        "plan": "终身",
+        "note": "一次付费，永久享受"
+      }
+    ],
+    "purchase_note": "具体价格请前往发卡网查看或联系客服"
+  },
+  "payment_methods": {
+    "crypto": {
+      "binance_uid": "YOUR_BINANCE_UID_HERE",
+      "okx_uid": "YOUR_OKX_UID_HERE",
+      "on_chain_bep20": "YOUR_USDT_BEP20_ADDRESS_HERE"
+    },
+    "fiat": {
+      "condition": "客户主动提出使用法币支付时，告诉客户：请直接联系老板微信或进行场外交易。严防黑钱。"
+    }
+  },
+  "post_payment_info": {
+    "condition": "客户声称已付款时，必须要求客户发送付款截图。收到截图并确认是购买【空投教学套餐】后，请引导客户主动联系人工客服。"
+  },
+  "security": {
+    "anti_sybil": "脚本支持IP隔离、设备模拟，配合指纹浏览器和多环境部署女巫隔离技巧，可隔绝90%以上的女巫检测",
+    "trust": "脚本会员服务是长期服务，注重信誉。使用脚本撸的号里不要存放大量资金，空投到账后第一时间归集即可",
+    "offline": "拒绝网络杀猪盘！支持全系套餐线下工作室实地考察喝茶面基"
+  },
+  "faq": [
+    {
+      "question": "现在入场会不会太晚了？",
+      "answer": "赚钱的生意都会有点卷，但撸空投因为需要科学上网加上英文门槛，已经把很多人筛选掉了。现在硅谷乃至全世界Web3都是热门创业方向，绝大多数人都没接触过虚拟货币，现在加入性价比非常高。撸空投未来2-3年对于币圈来说还是一笔风险相对较低、收益相对较高的投资。"
+    },
+    {
+      "question": "为什么白猫要分享出来？",
+      "answer": "Web3币圈是一个小众也是未来有无限潜能的市场。白猫需要社群圈子形成影响力。一个人又要搞自媒体、又要搞开发、还得做项目调研，不如在自己用脚本撸的同时，分享给小伙伴一起发财，两全其美。"
+    },
+    {
+      "question": "小白完全不懂可以做吗？",
+      "answer": "没问题。提供0基础傻瓜式教学视频和文档，一步步操作即可。现在也有特别多翻译插件或工具，语言完全不是问题。我们的教学形式是保姆级教程+禁言群+讨论群+白猫一对一真人辅导。"
+    },
+    {
+      "question": "空投能赚多少？",
+      "answer": "收益受三个因素影响：1.账号数量（100个号x20u=2000u）2.项目单号金额（从20U到4000U不等）3.项目时间周期。我们经深入调研，筛选高潜力项目带领大家参与。"
+    },
+    {
+      "question": "什么是撸空投？",
+      "answer": "简单来说就是Web3版的薅羊毛。Web3创业公司想获取早期用户，会给早期交互用户发虚拟货币。我们拿到币可以直接在市场上卖掉变成钱。比如Uniswap给每个用户发了5000个UNI，最高达225000美金。我们批量来撸，利润最大化。"
+    }
+  ],
+  "contact": {
+    "customer_service_tg": "@biqrxnxi_baimao",
+    "bot_tg": "@biqrxnxi_baimaobot",
+    "shop_url": "https://web3baimao.com/",
+    "feedback_channel": "https://t.me/biqrxnxiYW",
+    "landing_page": "https://airdrop.web3baimao.com/"
+  },
+  "scraped_products": [],
+  "scraped_services": [
+    {
+      "title": "🚀 四大核心业务",
+      "content": "专业团队为您提供全方位的 Web3 服务",
+      "url": "https://airdrop.web3baimao.com/"
+    },
+    {
+      "title": "🤔 什么是撸空投？",
+      "content": "简单来说，就是 Web3 版的\"薅羊毛\"",
+      "url": "https://airdrop.web3baimao.com/"
+    },
+    {
+      "title": "💰 为啥撸空投能赚到钱？",
+      "content": "虚拟币发展特别快，特别是懂王特朗普上台之后非常推崇虚拟货币。很多项目方需要拉融资机构给他融资，资方需要看真实用户数据。所以项目方会以设计任务形式让用户参与到项目宣传中去。",
+      "url": "https://airdrop.web3baimao.com/"
+    },
+    {
+      "title": "白猫是谁？",
+      "content": "Web3 自动化架构师，顶层基建服务商。",
+      "url": "https://airdrop.web3baimao.com/"
+    },
+    {
+      "title": "🚀 四大核心业务矩阵",
+      "content": "深入了解白猫工作室如何为你打造全自动 Web3 盈利流水线。",
+      "url": "https://airdrop.web3baimao.com/"
+    },
+    {
+      "title": "💎 会员套餐方案",
+      "content": "选择最适合你的方案，开启 Web3 之旅",
+      "url": "https://airdrop.web3baimao.com/"
+    },
+    {
+      "title": "📊 KOL信息转发圈功能展示",
+      "content": "实时追踪顶级KOL动态，AI智能分析市场趋势",
+      "url": "https://airdrop.web3baimao.com/"
+    },
+    {
+      "title": "📡 KOL信息转发圈详情",
+      "content": "亚洲大型币圈顶级策略实时转发群 — 各大主流KOL策略聚合",
+      "url": "https://airdrop.web3baimao.com/"
+    },
+    {
+      "title": "🛡️ 安全与保障",
+      "content": "我们的脚本基本上都是支持IP隔离、设备模拟，配合指纹浏览器和多环境部署女巫隔离技巧，基本上可以隔绝百分之九十以上的女巫检测。我们有大量的实战经验，大多数项目都是不会被女巫的。",
+      "url": "https://airdrop.web3baimao.com/"
+    },
+    {
+      "title": "📚 纯小白必看：视频介绍及空投常识扫盲",
+      "content": "购买前必读！手把手带入门，无需懂技术也能看懂的保姆级资料库",
+      "url": "https://airdrop.web3baimao.com/"
+    },
+    {
+      "title": "❓ 常见问题解答",
+      "content": "赚钱的生意都会有点卷，但撸空投因为需要科学上网加上英文门槛，已经把很多人筛选掉了。现在硅谷乃至全世界，Web3都是热门创业方向，绝大多数人都没接触过虚拟货币，现在加入性价比非常高。",
+      "url": "https://airdrop.web3baimao.com/"
+    },
+    {
+      "title": "🏆 真实成交反馈",
+      "content": "来自社群成员的真实收益展示",
+      "url": "https://airdrop.web3baimao.com/"
+    },
+    {
+      "title": "🚀 现在就开始你的 Web3 之旅",
+      "content": "加入我们的社群，一起撸空投，把握区块链早期红利！",
+      "url": "https://airdrop.web3baimao.com/"
+    }
+  ],
+  "last_updated": "2026-05-16T00:07:42.140557"
+}

@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env_example
+
+# Runtime data
+assets/*.pickle
+assets/db.sqlite3
+assets/db.sqlite3-*
+assets/chromadb/
+log.txt
+*.log
+
+# Build and archives
+build/
+dist/
+*.egg-info/
+*.tar.gz
+*.zip
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

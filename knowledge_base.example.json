@@ -1,0 +1,58 @@
+{
+  "brand": {
+    "name": "Your Studio",
+    "slogan": "AI-powered Telegram customer support",
+    "identity": "Telegram Business bot operator",
+    "boss_name": "Support Team",
+    "differentiator": "Combine AI replies, human takeover, and a searchable business knowledge base."
+  },
+  "products": [
+    {
+      "name": "Starter Plan",
+      "category": "Support Bot",
+      "target": "Small teams",
+      "featured": true,
+      "features": [
+        "Telegram Business message forwarding",
+        "AI auto reply",
+        "Human takeover",
+        "Basic FAQ knowledge base"
+      ],
+      "purchase_url": "https://example.com/",
+      "contact_required": false
+    }
+  ],
+  "payment_methods": {
+    "crypto": {
+      "binance_uid": "YOUR_BINANCE_UID_HERE",
+      "okx_uid": "YOUR_OKX_UID_HERE",
+      "on_chain_bep20": "YOUR_USDT_BEP20_ADDRESS_HERE"
+    },
+    "fiat": {
+      "condition": "When users ask for fiat payment, guide them to contact human support."
+    }
+  },
+  "post_payment_info": {
+    "condition": "When users claim they have paid, ask them to send a payment screenshot and wait for human verification."
+  },
+  "faq": [
+    {
+      "question": "What can this bot do?",
+      "answer": "It can receive Telegram Business messages, answer with AI, forward conversations to an admin group, and let human support take over."
+    },
+    {
+      "question": "Can I customize the knowledge base?",
+      "answer": "Yes. Replace this JSON with your own products, FAQs, links, and support rules."
+    }
+  ],
+  "contact": {
+    "customer_service_tg": "@your_support",
+    "bot_tg": "@your_bot",
+    "shop_url": "https://example.com/",
+    "feedback_channel": "https://t.me/your_channel",
+    "landing_page": "https://example.com/docs"
+  },
+  "scraped_products": [],
+  "scraped_services": [],
+  "last_updated": "2026-05-19T00:00:00"
+}

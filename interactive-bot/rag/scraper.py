@@ -1,5 +1,5 @@
 """
-RAG 爬虫 — 抓取 web3baimao.com 和 airdrop.web3baimao.com 的实时数据
+RAG 爬虫 — 抓取 web3baimao.com 的实时数据
 将商品/价格/业务介绍存为 knowledge_base.json
 
 可作为独立脚本运行，配合 Cron Job 定时更新：
@@ -79,7 +79,7 @@ async def scrape_shop(url: str = "https://web3baimao.com/") -> list[dict]:
     return products
 
 
-async def scrape_airdrop_intro(url: str = "https://airdrop.web3baimao.com/") -> list[dict]:
+async def scrape_airdrop_intro(url: str = "https://web3baimao.com/") -> list[dict]:
     """抓取空投业务介绍页面"""
     services = []
     try:
@@ -128,7 +128,7 @@ async def run_scraper(output_path: str = None):
 
     # 抓取新数据（显式传入目标 URL）
     shop_products = await scrape_shop("https://web3baimao.com/")
-    airdrop_services = await scrape_airdrop_intro("https://airdrop.web3baimao.com/")
+    airdrop_services = await scrape_airdrop_intro("https://web3baimao.com/")
 
     # 每次都更新对应字段；为空也写入，便于判断卡网是否抓取失败
     existing["scraped_products"] = shop_products

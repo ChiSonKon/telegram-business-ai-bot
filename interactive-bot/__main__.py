@@ -214,7 +214,7 @@ if __name__ == "__main__":
     application.add_handler(
         MessageHandler(
             ~filters.COMMAND
-            & filters.ChatType.GROUPS
+            & ~filters.ChatType.PRIVATE
             & ~filters.Chat([admin_group_id]),
             handle_group_mention,
         )

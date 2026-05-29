@@ -16,49 +16,61 @@ from ..rag.retriever import search_knowledge
 _llm_client = FallbackLLMClient()
 
 
-def _is_mentioned(update: Update) -> bool:
-    """检查消息是否提及了 Bot"""
-    if not update.message or not update.message.text:
+def _is_mentioned(update: Update, username: str) -> bool:
+    """检查消息是否提及了 Bot，或者回复了 Bot 的消息"""
+    if not update.message:
+        return False
+
+    # 1. 检查是否回复了 Bot 的消息
+    if update.message.reply_to_message and update.message.reply_to_message.from_user:
+        if update.message.reply_to_message.from_user.username == username:
+            return True
+
+    if not update.message.text:
         return False
 
     text = update.message.text
 
-    # 检查 @bot_username
-    if bot_username and f"@{bot_username}" in text:
+    # 2. 检查 @username (不区分大小写)
+    if username and f"@{username.lower()}" in text.lower():
         return True
 
-    # 检查 MENTION entity
+    # 3. 检查 MENTION entity
     if update.message.entities:
         for entity in update.message.entities:
             if entity.type == "mention":
                 mention_text = text[entity.offset : entity.offset + entity.length]
-                if bot_username and mention_text.lower() == f"@{bot_username.lower()}":
+                if username and mention_text.lower() == f"@{username.lower()}":
                     return True
 
     return False
 
 
-def _extract_question(update: Update) -> str:
-    """提取问题文本（去掉 @bot_username）"""
+def _extract_question(update: Update, username: str) -> str:
+    """提取问题文本（去掉 @username）"""
     text = update.message.text or ""
-    if bot_username:
-        text = text.replace(f"@{bot_username}", "").strip()
+    if username:
+        import re
+        text = re.sub(rf"@{re.escape(username)}", "", text, flags=re.IGNORECASE).strip()
     return text
 
 
 async def handle_group_mention(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     群组 @mention 处理器。
-    仅响应包含 @bot_username 的消息。
+    仅响应包含 @bot_username 或回复 Bot 的消息。
     """
     # 跳过管理群
     if update.effective_chat.id == admin_group_id:
         return
 
-    if not _is_mentioned(update):
+    # 动态获取当前 Bot 的用户名，更为精准可靠
+    username = context.bot.username or bot_username
+
+    if not _is_mentioned(update, username):
         return
 
-    question = _extract_question(update)
+    question = _extract_question(update, username)
     if not question:
         await update.message.reply_text("🤖 你好！请问有什么问题？")
         return

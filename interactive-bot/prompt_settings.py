@@ -43,7 +43,7 @@ def get_system_prompt() -> str:
         logger.error(f"从数据库读取系统提示词失败: {e}")
 
     # ── 数据库中没有：从文件迁移一次 ──
-    fallback_prompt = "你是白猫工作室的 AI 助手。"
+    fallback_prompt = "你是白猫工作室的 AI 客服管家/主理人。"
     try:
         with open(_PROMPT_FILE, "r", encoding="utf-8") as f:
             content = f.read().strip()

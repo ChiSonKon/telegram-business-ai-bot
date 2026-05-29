@@ -39,8 +39,8 @@ PAID_KEYWORDS = [
 ]
 
 AIRDROP_PACKAGE_KEYWORDS = [
-    "空投教学套餐", "空投套餐", "撸空投套餐", "空投基建套餐", "教学套餐",
-    "标准版", "个人副业版", "个人副业永久版", "豪华版", "工作室版", "经销商版", "企业合伙人",
+    "智能机器人定制", "双向机器人", "机器人标准版", "机器人定制版", "合约定制", "合约开发",
+    "合约审计", "安全审计", "群发协议", "防刷验证", "群控", "定制开发",
 ]
 
 NON_AIRDROP_PACKAGE_KEYWORDS = ["ai账号", "AI账号", "chatgpt", "claude", "gpt账号", "账号服务"]
@@ -155,15 +155,15 @@ def build_paid_text_message(text: str, state: MutableMapping) -> str | None:
     if is_non_airdrop_context(text):
         return (
             "收到付款信息了 ✅\n\n"
-            "不过工作室地址/小助手微信只给购买「空投教学套餐」的客户。\n"
-            "你这单如果是 AI账号或其他账号服务，我先帮你转人工核对订单。"
+            "不过技术经理微信只给进行「智能机器人或合约定制开发」合作的客户。\n"
+            "如果你有其他咨询，我先帮你转人工对接。"
         )
 
     if package_ok:
         return (
             "收到，你这边先发一张付款截图给我。\n"
             "为了防止对错账，再补发第二张付款截图或订单截图。\n\n"
-            "我确认是「空投教学套餐」付款后，再发工作室和小助手信息。"
+            "我确认是「智能机器人或合约定制开发」付款后，再发技术经理联系方式。"
         )
 
     return (
@@ -171,7 +171,7 @@ def build_paid_text_message(text: str, state: MutableMapping) -> str | None:
         "需要两次确认：\n"
         "1. 发付款截图\n"
         "2. 再补一张订单截图或付款详情截图\n\n"
-        "并告诉我你买的是不是「空投教学套餐」，确认后我再发后续添加信息。"
+        "并告诉我你定制的是不是「智能机器人或合约开发」，确认后我再发后续技术对接信息。"
     )
 
 
@@ -192,8 +192,8 @@ def build_payment_media_message(state: MutableMapping) -> str | None:
     if not state.get("payment_airdrop_package_ok"):
         return (
             "两张截图我收到了 ✅\n\n"
-            "再确认一下：你付款的是「空投教学套餐」吗？\n"
-            "确认是这个套餐后，我再发工作室地址和小助手微信。"
+            "再确认一下：你付款的是「智能机器人或合约开发」吗？\n"
+            "确认是此开发服务后，我再发技术经理微信进行对接。"
         )
 
     return build_post_payment_release_message()
@@ -203,8 +203,6 @@ def build_post_payment_release_message() -> str:
     info = _post_payment_info()
     return (
         "确认收到两次截图 ✅\n\n"
-        "添加时备注好：白猫付款并添加\n\n"
-        f"工作室地址：{info.get('studio_address', '')}\n"
-        f"前台：{info.get('front_desk', '')}\n"
-        f"小助手微信：{info.get('assistant_wechat', '').split(' ')[0]}"
+        "添加时备注好：白猫工作室付款并对接\n\n"
+        f"技术经理微信：{info.get('assistant_wechat', '').split(' ')[0]}"
     )

@@ -185,8 +185,8 @@ async def _handle_human_bottom_button(update: Update, context: ContextTypes.DEFA
     ])
 
     await update.message.reply_text(
-        "已呼叫老板（白猫），请稍候...\n\n"
-        "老板看到后会第一时间回复你。\n"
+        "已呼叫主理人，请稍候...\n\n"
+        "主理人看到后会第一时间回复你。\n"
         "在此期间你可以继续发送消息，我会帮你转达。",
         reply_markup=keyboard,
     )

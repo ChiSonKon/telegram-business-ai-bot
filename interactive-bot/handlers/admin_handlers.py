@@ -146,7 +146,7 @@ async def forwarding_message_a2u(update: Update, context: ContextTypes.DEFAULT_T
             ])
             await context.bot.send_message(
                 user_id,
-                "🔕 老板（白猫）已接管当前对话，有什么问题直接说即可。\n如果想要继续使用 AI，可以点击下方按钮。",
+                "🔕 主理人已接管当前对话，有什么问题直接说即可。\n如果想要继续使用 AI，可以点击下方按钮。",
                 reply_markup=keyboard
             )
         except Exception as e:

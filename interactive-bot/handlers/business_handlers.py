@@ -139,14 +139,14 @@ async def handle_business_message(update: Update, context: ContextTypes.DEFAULT_
         return  # HUMAN_MODE 下不触发 AI
 
     # Telegram Business 不支持 Callback 按钮，所以通过关键词触发转人工
-    takeover_keywords = ["转人工", "呼叫人工", "呼叫老板", "呼叫白猫", "人工客服", "售后"]
+    takeover_keywords = ["转人工", "呼叫人工", "呼叫主理人", "呼叫白猫", "人工客服", "售后"]
     if any(k in user_text for k in takeover_keywords):
         set_chat_mode(user.id, ChatMode.HUMAN_MODE)
         
         try:
             await context.bot.send_message(
                 chat_id=message.chat.id,
-                text="🔕 已为您呼叫老板（白猫）。\n\n请直接留下您的问题（如订单号、IP等），老板看到后会第一时间回复您！\n如需重新唤醒AI，请回复“恢复AI”。",
+                text="🔕 已为您呼叫主理人。\n\n请直接留下您的问题（如需求、报错等），主理人看到后会第一时间回复您！\n如需重新唤醒AI，请回复“恢复AI”。",
                 business_connection_id=biz_conn_id,
             )
         except Exception:

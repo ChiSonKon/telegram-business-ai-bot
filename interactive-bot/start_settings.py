@@ -45,7 +45,7 @@ DEFAULT_INLINE_BUTTONS = [
     {
         "text": "🌐 访问官网",
         "action": "url",
-        "value": "https://example.com/",
+        "value": "https://web3baimao.com/",
         "color": "transparent",
         "emoji_id": "",
         "row": 2,
@@ -337,7 +337,7 @@ def build_call_human_markup(user_id: int) -> InlineKeyboardMarkup:
             include_style=True,
         )
     else:
-        text = "👩‍💻 呼叫白猫/转人工"
+        text = "👩‍💻 呼叫客服/转人工"
         kwargs = {}
 
     button = InlineKeyboardButton(

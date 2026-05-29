@@ -1,7 +1,7 @@
 """
 回调处理器 — 处理内联按钮点击事件
 
-1. 客户侧: [呼叫白猫/转人工] / [恢复AI对话]
+1. 客户侧: [呼叫老板/转人工] / [恢复AI对话]
 2. 管理侧: [接管对话] / [恢复 AI]
 3. 验证码回调
 """
@@ -30,7 +30,7 @@ db = SessionMaker()
 # ==========================================
 
 async def callback_call_human(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """客户点击 [呼叫白猫/转人工] 按钮"""
+    """客户点击 [呼叫老板/转人工] 按钮"""
     query = update.callback_query
     user = query.from_user
 
@@ -54,8 +54,8 @@ async def callback_call_human(update: Update, context: ContextTypes.DEFAULT_TYPE
     ])
 
     await query.message.reply_text(
-        "已呼叫老板（白猫），请稍候...\n\n"
-        "老板看到后会第一时间回复你\n"
+        "已呼叫主理人，请稍候...\n\n"
+        "主理人看到后会第一时间回复你\n"
         "在此期间你可以继续发送消息，我会帮你转达。\n\n"
         "如果想重新使用 AI 对话，点击下方按钮即可。",
         reply_markup=keyboard,
@@ -172,7 +172,7 @@ async def callback_admin_restore(update: Update, context: ContextTypes.DEFAULT_T
     try:
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton(
-                "👩‍💻 呼叫白猫/转人工",
+                "👩‍💻 呼叫老板/转人工",
                 callback_data=f"call_human_{target_user_id}",
             )]
         ])

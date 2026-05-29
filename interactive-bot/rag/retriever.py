@@ -77,7 +77,7 @@ def search_knowledge(query: str, top_k: int = 5) -> str:
         for feat in p.get("features", [])[:4]:
             overview_lines.append(f"      {feat}")
         if p.get("contact_required"):
-            overview_lines.append(f"      购买方式: 联系客服 @biqrxnxi_baimao")
+            overview_lines.append(f"      购买方式: 联系客服 {kb.get('contact', {}).get('customer_service_tg', '@biqrxnxiYW')}")
         else:
             overview_lines.append(f"      购买链接: {p.get('purchase_url', '')}")
         overview_lines.append("")
@@ -121,13 +121,11 @@ def search_knowledge(query: str, top_k: int = 5) -> str:
 
     # ═══ 核心业务（当问服务内容时） ═══
     biz_triggers = [
-        "空投", "撸空投", "airdrop", "套利", "量化", "交易",
-        "做什么", "干什么", "业务", "服务", "赚钱", "怎么赚",
-        "脚本", "自动化", "ip", "IP", "三件套", "指纹",
-        "MEV", "RPC", "DEX", "CEX",
+        "机器人", "智能客服", "智能合约", "审计", "套利", "群发", "群控",
+        "安全", "DApp", "开发", "定制", "业务", "服务", "干什么", "做什么",
     ]
     if _has_any(query, biz_triggers):
-        biz_lines = ["白猫工作室四大核心业务：\n"]
+        biz_lines = [f"{brand.get('name', '白猫工作室')}核心业务：\n"]
         for biz in kb.get("core_business", []):
             biz_lines.append(f"{biz['icon']} {biz['name']} ({biz['en']})")
             biz_lines.append(f"  痛点: {biz['pain']}")
@@ -178,13 +176,13 @@ def search_knowledge(query: str, top_k: int = 5) -> str:
                 f"  线下: {sec.get('offline', '')}"
             )
 
-    # ═══ AI 账号 ═══
-    ai_triggers = ["AI账号", "ai账号", "chatgpt", "ChatGPT", "GPT", "gpt", "claude", "Claude", "AI"]
-    if _has_any(query, ai_triggers):
+    # ═══ 智能机器人与定制开发 ═══
+    bot_triggers = ["机器人", "bot", "Bot", "定制", "开发", "开发版", "标准版", "客服", "合约", "审计"]
+    if _has_any(query, bot_triggers):
         sections.append(
-            "AI账号服务：\n"
-            "  白猫工作室有售卖各类主流AI账号。\n"
-            "  具体库存和价格请到发卡网查看: https://web3baimao.com/"
+            f"智能机器人与开发服务：\n"
+            f"  {brand.get('name', '白猫工作室')}提供专业的智能机器人定制、智能合约开发与Web3社群运营系统。\n"
+            f"  具体详情请联系客服或访问官网: {contact.get('shop_url', 'https://web3baimao.com/')}"
         )
 
     # 付款方式、银行卡、付款后工作室/微信等敏感信息由 handlers.payment_rules 规则模块处理，

@@ -28,7 +28,7 @@ LOCAL_TAR_PATH = os.path.join(LOCAL_SRC_DIR, TAR_NAME)
 ENV_CONTENT = """# ═══ 基本配置 ═══
 APP_NAME=interactive-bot
 BOT_TOKEN=8684360330:AAFkqGAL44lDC4exUo2R5gWuDVBEJ0ZbE6E
-BOT_USERNAME=web3baimaobot
+BOT_USERNAME=biqrxnxi_baimaoBOT
 
 # ═══ 管理配置 ═══
 # 客服管理超级话题群组ID（自动配置自您的私有管理群ID）

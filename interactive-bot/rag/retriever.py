@@ -77,7 +77,7 @@ def search_knowledge(query: str, top_k: int = 5) -> str:
         for feat in p.get("features", [])[:4]:
             overview_lines.append(f"      {feat}")
         if p.get("contact_required"):
-            overview_lines.append(f"      购买方式: 联系客服 {kb.get('contact', {}).get('customer_service_tg', '@biqrxnxiYW')}")
+            overview_lines.append(f"      购买方式: 联系客服 {kb.get('contact', {}).get('customer_service_tg', '@oxbaimao')}")
         else:
             overview_lines.append(f"      购买链接: {p.get('purchase_url', '')}")
         overview_lines.append("")

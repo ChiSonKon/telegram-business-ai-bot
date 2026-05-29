@@ -8,7 +8,7 @@
 
 如果你发现 token 泄露、越权访问、支付信息泄露、RAG 注入、后台管理绕过或其他安全问题，请优先私下联系维护者：
 
-- Telegram: https://t.me/biqrxnxiYW
+- Telegram: https://t.me/oxbaimao
 
 请尽量包含：
 

@@ -43,7 +43,7 @@
       ],
       "purchase_url": "https://web3baimao.com/",
       "contact_required": true,
-      "contact_note": "定制请联系白猫工作室官方客服 (@biqrxnxiYW)"
+      "contact_note": "定制请联系白猫工作室官方客服 (@oxbaimao)"
     },
     {
       "name": "Web3 智能双向接待客服机器人 (定制开发版)",
@@ -58,7 +58,7 @@
       ],
       "purchase_url": "https://web3baimao.com/",
       "contact_required": true,
-      "contact_note": "请联系白猫工作室主理人 (@biqrxnxiYW) 详谈定制方案"
+      "contact_note": "请联系白猫工作室主理人 (@oxbaimao) 详谈定制方案"
     },
     {
       "name": "智能合约定制开发与第三方安全审计",
@@ -73,7 +73,7 @@
       ],
       "purchase_url": "https://web3baimao.com/",
       "contact_required": true,
-      "contact_note": "请联系白猫工作室官方客服 (@biqrxnxiYW)"
+      "contact_note": "请联系白猫工作室官方客服 (@oxbaimao)"
     },
     {
       "name": "Telegram / Discord 群控协议与防刷验证系统",
@@ -81,14 +81,14 @@
       "target": "空投工作室/矩阵KOL团队",
       "featured": false,
       "features": [
-        "支持上千账号的高并发API群发和动态交互模拟",
+        "支持上千账号的高并发API群发 and 动态交互模拟",
         "完美绕过TG/DC的风控监测，保证账号高存活率",
         "内置高级图形验证码/人机校验过滤模块，防机器人刷取",
         "提供可视化控制面板，支持账号分组与数据一键导出"
       ],
       "purchase_url": "https://web3baimao.com/",
       "contact_required": true,
-      "contact_note": "请联系白猫工作室官方客服 (@biqrxnxiYW)"
+      "contact_note": "请联系白猫工作室官方客服 (@oxbaimao)"
     }
   ],
   "kol_circle": {
@@ -113,7 +113,7 @@
       "on_chain_bep20": "0x0000000000000000000000000000000000000000"
     },
     "fiat": {
-      "condition": "我们注重开发合作的合规性。大额定制订单支持公司主体签署正式的技术服务合同，支持提供对公银行账户并开具正规发票。请直接联系官方客服 (@biqrxnxiYW) 确认合同条款和首笔预付款。"
+      "condition": "我们注重开发合作的合规性。大额定制订单支持公司主体签署正式的技术服务合同，支持提供对公银行账户并开具正规发票。请直接联系官方客服 (@oxbaimao) 确认合同条款 and 首笔预付款。"
     }
   },
   "post_payment_info": {
@@ -143,10 +143,10 @@
     }
   ],
   "contact": {
-    "customer_service_tg": "@biqrxnxiYW",
-    "bot_tg": "@biqrxnxiYW",
+    "customer_service_tg": "@oxbaimao",
+    "bot_tg": "@biqrxnxi_baimaoBOT",
     "shop_url": "https://web3baimao.com/",
-    "feedback_channel": "https://t.me/biqrxnxiYW",
+    "feedback_channel": "https://t.me/oxbaimao",
     "landing_page": "https://web3baimao.com/"
   },
   "scraped_products": [],

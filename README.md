@@ -61,7 +61,7 @@ graph TD
 
 ### 1. 环境要求
 - Python 3.10+
-- 拥有 Telegram Premium（企业版权限）的个人/业务账号
+- 拥有 Telegram Premium（企业版权限）的个人/业务账号 [点击自助购买TG企业会员支持微信/支付宝](https://t.me/biqrxnxi_tgYWbot) 
 - 在 [@BotFather](https://t.me/BotFather) 处注册好的 Bot
 
 ### 2. 启用秘书模式 (Enable Secretary Mode)

@@ -4,6 +4,7 @@ from __future__ import annotations
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ApplicationHandlerStop, ContextTypes
 
+from ..admin import permissions
 from .. import admin_user_ids
 from ..global_settings import get_global_config, update_global_config
 
@@ -49,7 +50,7 @@ def get_global_config_keyboard(config: dict) -> InlineKeyboardMarkup:
 async def callback_global_config(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     admin = query.from_user
-    if admin.id not in admin_user_ids:
+    if not permissions.can(admin.id, "config_edit"):
         await query.answer("No permission", show_alert=True)
         return
 
@@ -91,7 +92,7 @@ async def callback_global_config(update: Update, context: ContextTypes.DEFAULT_T
 async def handle_admin_global_config_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """接收管理员下一条私聊文本并保存为全局参数。"""
     user = update.effective_user
-    if user.id not in admin_user_ids:
+    if not permissions.can(user.id, "config_edit"):
         return
 
     key = context.user_data.get(ADMIN_GLOBAL_CONFIG_STATE)

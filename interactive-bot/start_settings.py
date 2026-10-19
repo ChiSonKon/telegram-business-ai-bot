@@ -35,20 +35,12 @@ BOTTOM_ACTIONS = {"text", "human"}
 
 DEFAULT_INLINE_BUTTONS = [
     {
-        "text": "👩‍💻 呼叫客服/转人工",
-        "action": "human",
-        "value": "",
-        "color": "blue",
-        "emoji_id": "",
-        "row": 1,
-    },
-    {
         "text": "🌐 访问官网",
         "action": "url",
         "value": "https://web3baimao.com/",
         "color": "transparent",
         "emoji_id": "",
-        "row": 2,
+        "row": 1,
     },
 ]
 DEFAULT_BOTTOM_BUTTONS: list[dict[str, Any]] = []
@@ -108,7 +100,15 @@ def _loads_buttons(raw: str, default: list[dict[str, Any]]) -> list[dict[str, An
 
 def get_inline_buttons() -> list[dict[str, Any]]:
     raw = _get_setting(SETTING_INLINE_BUTTONS, json.dumps(DEFAULT_INLINE_BUTTONS, ensure_ascii=False))
-    return _loads_buttons(raw, DEFAULT_INLINE_BUTTONS)
+    buttons = _loads_buttons(raw, DEFAULT_INLINE_BUTTONS)
+    # 旧默认"访问军火库官网 → 空投站"会让所有客户都被带去空投站;已存库的旧默认一次性改为综合主站
+    migrated = False
+    for b in buttons:
+        if b.get("action") == "url" and str(b.get("value", "")).startswith("https://airdrop.web3baimao.com") and "军火库" in str(b.get("text", "")):
+            b["text"], b["value"], migrated = "🌐 访问官网", "https://web3baimao.com/", True
+    if migrated:
+        set_inline_buttons(buttons)
+    return buttons
 
 
 def get_bottom_buttons() -> list[dict[str, Any]]:
@@ -337,7 +337,7 @@ def build_call_human_markup(user_id: int) -> InlineKeyboardMarkup:
             include_style=True,
         )
     else:
-        text = "👩‍💻 呼叫客服/转人工"
+        text = "💁 点击转接人工客服"
         kwargs = {}
 
     button = InlineKeyboardButton(

@@ -1,4 +1,4 @@
-"""运行时全局参数配置。"""
+"""运行时全局参数配置与动态管理群配置。"""
 import json
 import logging
 from typing import Any, Dict
@@ -7,6 +7,7 @@ from db.database import SessionMaker, engine
 from db.model import AppSetting
 
 from . import (
+    admin_group_id as env_admin_group_id,
     is_delete_topic_as_ban_forever as env_ban_forever,
     is_delete_user_messages as env_delete_msgs,
     disable_captcha as env_disable_captcha,
@@ -17,6 +18,7 @@ from . import (
 logger = logging.getLogger(__name__)
 
 SETTING_GLOBAL_CONFIG = "bot.global_config"
+SETTING_ADMIN_GROUP_ID = "bot.admin_group_id"
 
 def _session():
     return SessionMaker()
@@ -30,6 +32,38 @@ def _default_config() -> Dict[str, Any]:
         "rate_limit_per_minute": env_rate_limit,
     }
 
+def get_admin_group_id() -> int:
+    """获取当前生效的管理群 ID。优先读取数据库中的配置，不存在时回退到环境变量。"""
+    db = _session()
+    try:
+        setting = db.query(AppSetting).filter(AppSetting.key == SETTING_ADMIN_GROUP_ID).first()
+        if setting and setting.value:
+            try:
+                return int(setting.value)
+            except ValueError:
+                pass
+        return env_admin_group_id
+    except Exception as e:
+        logger.error(f"读取管理群ID配置失败: {e}")
+        return env_admin_group_id
+    finally:
+        db.close()
+
+def set_admin_group_id(group_id: int) -> None:
+    """动态更新并持久化管理群 ID。"""
+    db = _session()
+    try:
+        setting = db.query(AppSetting).filter(AppSetting.key == SETTING_ADMIN_GROUP_ID).first()
+        val = str(group_id)
+        if setting:
+            setting.value = val
+        else:
+            db.add(AppSetting(key=SETTING_ADMIN_GROUP_ID, value=val))
+        db.commit()
+        logger.info(f"管理群 ID 已更新并保存为: {group_id}")
+    finally:
+        db.close()
+
 def get_global_config() -> Dict[str, Any]:
     """读取全局配置。"""
     db = _session()
@@ -38,14 +72,12 @@ def get_global_config() -> Dict[str, Any]:
         if setting and setting.value:
             try:
                 data = json.loads(setting.value)
-                # 与默认配置合并，保证新加的字段有默认值
                 config = _default_config()
                 config.update(data)
                 return config
             except Exception as e:
                 logger.warning(f"解析全局配置失败: {e}")
         
-        # 不存在则初始化
         config = _default_config()
         val = json.dumps(config, ensure_ascii=False)
         if setting:

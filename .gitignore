@@ -34,3 +34,10 @@ dist/
 Thumbs.db
 .idea/
 .vscode/
+
+# 数据库备份含客户数据,不入库
+assets/db.sqlite3.backup*
+assets/*.backup*
+*.log
+bot.tar.gz
+bot_dist.tar.gz

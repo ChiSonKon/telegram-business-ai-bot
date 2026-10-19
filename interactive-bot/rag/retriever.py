@@ -1,10 +1,12 @@
 """
-RAG 检索器 — 从 knowledge_base.json 中检索产品/服务/FAQ
-每次 LLM 调用都会注入匹配的上下文，确保 AI 基于真实数据回答
+知识检索:从 knowledge_base.json(kb.v2)中按业务线与问题关键词取回事实,注入每次 AI 回合。
+
+原则:体量小(只注入相关产品)、事实可溯源(价格只来自此处)、未公开的信息明确标注"需同事确认"。
+金额授权:出站护栏只放行本文本中出现过的金额,因此价格必须写在知识库里,AI 才能引用。
 """
 import json
-import os
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -16,17 +18,18 @@ _KB_FILE = os.path.join(
     "knowledge_base.json",
 )
 
+POLICY_TRIGGERS = ["价格", "多少钱", "费用", "报价", "购买", "怎么买", "退款", "退", "保证", "质保", "售后", "补差", "优惠", "便宜",
+                   "试用", "交付", "多久", "付款", "支付", "到账", "price", "refund", "pay", "warranty", "how much", "trial", "cost"]
+
 
 def _load_knowledge(filepath: str = None) -> dict:
     """带缓存的知识库加载"""
     global _knowledge_cache, _cache_mtime
     path = filepath or _KB_FILE
-
     try:
         mtime = os.path.getmtime(path)
         if _knowledge_cache and mtime == _cache_mtime:
             return _knowledge_cache
-
         with open(path, "r", encoding="utf-8") as f:
             _knowledge_cache = json.load(f)
         _cache_mtime = mtime
@@ -41,166 +44,78 @@ def _load_knowledge(filepath: str = None) -> dict:
 
 
 def _has_any(query: str, keywords: list[str]) -> bool:
-    """查询中是否包含任何关键词"""
-    q = query.lower()
+    q = (query or "").lower()
     return any(k.lower() in q for k in keywords)
 
 
-def search_knowledge(query: str, top_k: int = 5) -> str:
-    """
-    根据用户问题检索知识库。
-    策略：始终返回产品概览 + 按触发词追加详细信息。
-    确保 AI 永远有真实数据可引用。
-    """
+def _plan_line(p: dict) -> str:
+    parts = [f"{p['name']}：{p['price']}{p.get('unit', '')}"]
+    for k in ("duration", "seats", "note"):
+        if p.get(k):
+            parts.append(p[k])
+    return "  - " + " · ".join(parts)
+
+
+def _product_detail(p: dict) -> str:
+    out = [f"【{p['name']}】" + (f" {p['version']}" if p.get("version") else ""), p.get("summary", "")]
+    if p.get("platforms"):
+        out.append(f"支持平台：{p['platforms']}")
+    if p.get("plans"):
+        out.append("价格（参考价）：")
+        out += [_plan_line(x) for x in p["plans"]]
+    if p.get("features"):
+        out.append("要点：")
+        out += [f"  • {x}" for x in p["features"]]
+    if p.get("facts"):
+        out.append("须知：")
+        out += [f"  • {x}" for x in p["facts"]]
+    return "\n".join(x for x in out if x)
+
+
+def search_knowledge(query: str, line_id: str | None = None, top_k: int = 5, extra_line_ids: list[str] | None = None) -> str:
+    """line_id:预检已确认的业务线;其产品详情始终注入。问题里命中其他产品的关键词时一并注入(最多 top_k 个)。"""
     kb = _load_knowledge()
     if not kb:
         return ""
-
-    sections = []
-
-    # ═══ 始终注入：品牌 + 产品概览 ═══
-    # 这样 AI 每次回复都有真实套餐数据，不会编造
-    brand = kb.get("brand", {})
+    brand, official = kb.get("brand", {}), kb.get("official", {})
     products = kb.get("products", [])
 
-    overview_lines = [
-        f"品牌: {brand.get('name', '')} - {brand.get('slogan', '')}",
-        f"定位: {brand.get('identity', '')}",
-        "",
-        "全部套餐方案："
+    sections = [
+        f"品牌：{brand.get('name', '')}（{brand.get('slogan', '')}）。{brand.get('identity', '')}\n{brand.get('price_note', '')}",
+        "业务概览：\n" + "\n".join(f"  - {p['name']}：{p.get('summary', '')}" for p in products if not p.get("extra", False)),
     ]
+
+    chosen = [p for p in products if line_id and p.get("line") == line_id]
+    for p in products:                                    # 客户并行关注的业务线,其产品资料同样注入(各业务口径互不混用)
+        if p not in chosen and p.get("line") in (extra_line_ids or []):
+            chosen.append(p)
     for p in products:
-        featured = " [推荐]" if p.get("featured") else ""
-        target = f" ({p.get('target', '')})" if p.get("target") else ""
-        overview_lines.append(f"  - {p['name']}{target}{featured}")
-        # 列出前4个特色
-        for feat in p.get("features", [])[:4]:
-            overview_lines.append(f"      {feat}")
-        if p.get("contact_required"):
-            overview_lines.append(f"      购买方式: 联系客服 {kb.get('contact', {}).get('customer_service_tg', '@oxbaimao')}")
-        else:
-            overview_lines.append(f"      购买链接: {p.get('purchase_url', '')}")
-        overview_lines.append("")
+        if p not in chosen and _has_any(query, p.get("keywords", [])):
+            chosen.append(p)
+    for p in chosen[:top_k]:
+        sections.append(_product_detail(p))
 
-    sections.append("\n".join(overview_lines))
+    if _has_any(query, POLICY_TRIGGERS) or not chosen:
+        sections.append("政策与口径：\n" + "\n".join(f"  - {x}" for x in kb.get("policies", [])))
+    if _has_any(query, ["怎么", "能不能", "支持", "试用", "安装", "系统", "吗", "?", "？", "how", "can"]):
+        faq = [f"Q: {i['q']}\nA: {i['a']}" for i in kb.get("faq", [])]
+        if faq:
+            sections.append("常见问题：\n" + "\n\n".join(faq))
 
-    # ═══ 发卡网实时商品/价格（由定时爬虫刷新）═══
-    scraped_products = kb.get("scraped_products", [])
-    if scraped_products:
-        scraped_lines = [
-            "发卡网实时商品/价格（以最近一次抓取为准，成交前仍建议让客户到发卡网确认）："
-        ]
-        for item in scraped_products[:30]:
-            name = item.get("name", "")
-            price = item.get("price", "")
-            stock = item.get("stock", "")
-            if name:
-                extra = f"，库存/状态: {stock}" if stock else ""
-                scraped_lines.append(f"  - {name}: {price or '价格见发卡网'}{extra}")
-        scraped_lines.append(f"  最近更新: {kb.get('last_updated', '未知')}")
-        sections.append("\n".join(scraped_lines))
-
-    # ═══ 套餐详情（当问具体套餐时） ═══
-    product_detail_triggers = [
-        "套餐", "方案", "价格", "多少钱", "报价", "费用", "买", "购买",
-        "标准", "豪华", "副业", "工作室", "经销商", "合伙人", "企业",
-        "永久", "会员", "详细", "对比", "区别", "哪个好",
-    ]
-    if _has_any(query, product_detail_triggers):
-        detail_lines = ["套餐详细功能清单：\n"]
-        for p in products:
-            detail_lines.append(f"[{p['name']}] 适用: {p.get('target', '')}")
-            for feat in p.get("features", []):
-                detail_lines.append(f"  - {feat}")
-            if p.get("contact_required"):
-                detail_lines.append(f"  购买: 联系客服 ({p.get('contact_note', '')})")
-            else:
-                detail_lines.append(f"  购买: {p.get('purchase_url', '')}")
-            detail_lines.append("")
-        sections.append("\n".join(detail_lines))
-
-    # ═══ 核心业务（当问服务内容时） ═══
-    biz_triggers = [
-        "机器人", "智能客服", "智能合约", "审计", "套利", "群发", "群控",
-        "安全", "DApp", "开发", "定制", "业务", "服务", "干什么", "做什么",
-    ]
-    if _has_any(query, biz_triggers):
-        biz_lines = [f"{brand.get('name', '白猫工作室')}核心业务：\n"]
-        for biz in kb.get("core_business", []):
-            biz_lines.append(f"{biz['icon']} {biz['name']} ({biz['en']})")
-            biz_lines.append(f"  痛点: {biz['pain']}")
-            biz_lines.append(f"  方案: {biz['solution']}")
-            biz_lines.append("")
-        sections.append("\n".join(biz_lines))
-
-    # ═══ KOL 转发圈 ═══
-    kol_triggers = [
-        "kol", "KOL", "转发", "博主", "信息圈", "alpha",
-        "情报", "策略", "消息源",
-    ]
-    if _has_any(query, kol_triggers):
-        kol = kb.get("kol_circle", {})
-        if kol:
-            kol_lines = [
-                f"KOL信息转发圈 - {kol.get('description', '')}",
-                "定价方案："
-            ]
-            for p in kol.get("pricing", []):
-                kol_lines.append(f"  - {p['plan']}: {p.get('note', '')}")
-            kol_lines.append(f"  {kol.get('purchase_note', '')}")
-            sections.append("\n".join(kol_lines))
-
-    # ═══ FAQ ═══
-    faq_triggers = [
-        "小白", "新手", "不懂", "来得及", "太晚", "太卷",
-        "能赚", "收益", "多少", "安全", "靠谱", "为什么",
-        "基础", "英文", "学", "教",
-    ]
-    if _has_any(query, faq_triggers):
-        faq_lines = ["常见问题：\n"]
-        for faq in kb.get("faq", []):
-            faq_lines.append(f"Q: {faq['question']}")
-            faq_lines.append(f"A: {faq['answer'][:200]}")
-            faq_lines.append("")
-        sections.append("\n".join(faq_lines))
-
-    # ═══ 安全 ═══
-    safe_triggers = ["安全", "女巫", "sybil", "风险", "骗", "靠谱", "信任"]
-    if _has_any(query, safe_triggers):
-        sec = kb.get("security", {})
-        if sec:
-            sections.append(
-                f"安全保障：\n"
-                f"  反女巫: {sec.get('anti_sybil', '')}\n"
-                f"  信任: {sec.get('trust', '')}\n"
-                f"  线下: {sec.get('offline', '')}"
-            )
-
-    # ═══ 智能机器人与定制开发 ═══
-    bot_triggers = ["机器人", "bot", "Bot", "定制", "开发", "开发版", "标准版", "客服", "合约", "审计"]
-    if _has_any(query, bot_triggers):
-        sections.append(
-            f"智能机器人与开发服务：\n"
-            f"  {brand.get('name', '白猫工作室')}提供专业的智能机器人定制、智能合约开发与Web3社群运营系统。\n"
-            f"  具体详情请联系客服或访问官网: {contact.get('shop_url', 'https://web3baimao.com/')}"
-        )
-
-    # 付款方式、银行卡、付款后工作室/微信等敏感信息由 handlers.payment_rules 规则模块处理，
-    # 不再注入给 LLM，避免模型在条件不足时泄露。
-
-    # ═══ 始终注入联系方式 ═══
-    contact = kb.get("contact", {})
-    if contact:
-        sections.append(
-            f"联系方式：\n"
-            f"  人工客服: {contact.get('customer_service_tg', '')}\n"
-            f"  发卡网: {contact.get('shop_url', '')}\n"
-            f"  成交反馈: {contact.get('feedback_channel', '')}\n"
-            f"  详细介绍: {contact.get('landing_page', '')}"
-        )
+    site_label = {"software": ("软件官网(WhiteCat 5.0 下载/价格/FAQ)", "website"), "airdrop": ("空投业务官网(会员方案/KOL 转发圈/教程)", "airdrop_site")}
+    focus = (line_id or (chosen[0].get("line") if chosen else None)) or ""
+    label, key = site_label.get(focus, ("综合业务主站(业务介绍/成交案例/客户好评)", "main_site"))
+    links = [f"{label} {official.get(key) or official.get('main_site', '')}"]
+    if key != "main_site" and official.get("main_site"):          # 不跨业务线带出别的站点(软件对话里不出现空投站,反之亦然)
+        links.append(f"综合业务主站(业务介绍/成交案例/客户好评) {official['main_site']}")
+    if official.get("purchase_bot"):
+        links.append(f"官方购买机器人 {official['purchase_bot']}（{official.get('purchase_bot_url', '')}）")
+    if official.get("docs"):
+        links.append(f"文档 {official['docs']}")
+    if official.get("releases"):
+        links.append(f"下载与校验和 {official['releases']}")
+    sections.append("官方入口（只能提供这些，不提供任何个人账号）：\n" + "\n".join(f"  - {x}" for x in links))
 
     result = "\n\n".join(sections)
-    if result:
-        logger.info(f"RAG: {len(sections)} sections for: {query[:30]}")
+    logger.info("RAG: %d sections, products=%s", len(sections), [p["id"] for p in chosen])
     return result
-

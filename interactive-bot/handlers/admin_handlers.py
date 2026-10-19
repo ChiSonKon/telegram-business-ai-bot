@@ -137,20 +137,27 @@ async def forwarding_message_a2u(update: Update, context: ContextTypes.DEFAULT_T
     current_mode = get_chat_mode(user_id)
     if current_mode == ChatMode.AI_MODE:
         set_chat_mode(user_id, ChatMode.HUMAN_MODE)
+        from ..admin.actions import take_over
+        take_over(update.effective_user.id, user_id)          # 同步前台状态并记入操作记录
+        from ..timeout_tracker import dismiss_care
+        dismiss_care(user_id)
         # 提示管理员
-        await update.message.reply_html("🔕 <b>已自动接管该对话</b>，AI 已暂停。")
-        # 提示客户
-        try:
-            keyboard = InlineKeyboardMarkup([
-                [InlineKeyboardButton("🤖 恢复AI对话", callback_data=f"restore_ai_{user_id}")]
-            ])
-            await context.bot.send_message(
-                user_id,
-                "🔕 主理人已接管当前对话，有什么问题直接说即可。\n如果想要继续使用 AI，可以点击下方按钮。",
-                reply_markup=keyboard
-            )
-        except Exception as e:
-            logger.error(f"Failed to notify user {user_id} about takeover: {e}")
+        await update.message.reply_html(
+            f"🔕 <b>管理员 {update.effective_user.first_name} 已接管对话</b>\nAI 已关闭，后续消息将直接转发给客户。"
+        )
+
+    # 待跟进的客户:同事一回话就算接手(此前聊天模式已是人工时不会触发上面的接管,导致控制台一直显示"待跟进")
+    from ..frontdesk.service import case_state
+    if case_state(user_id) == "HUMAN_PENDING":
+        from ..admin.actions import take_over as _take_over
+        _take_over(update.effective_user.id, user_id)
+
+    # 对同事的消息点一下 ❤️ 表示"已收到并转给客户",约 1.5 秒后自动取消
+    try:
+        from ..experience import reactions
+        await reactions.flash(context.bot, update.effective_chat.id, update.message.message_id, "❤️")
+    except Exception as re_err:
+        logger.debug(f"对管理消息点赞失败: {re_err}")
 
     chat_id = user_id
 
@@ -194,11 +201,27 @@ async def forwarding_message_a2u(update: Update, context: ContextTypes.DEFAULT_T
                 )
             return
 
-        # 发送给用户
-        chat = await context.bot.get_chat(chat_id)
-        sent_msg = await chat.send_copy(
-            update.effective_chat.id, update.message.id, **params
-        )
+        # 发送给用户（兼容 Telegram Business 客户）
+        sent_msg = None
+        from db.model import BusinessContact
+        b_contact = db.query(BusinessContact).filter(BusinessContact.user_id == user_id).first()
+        if b_contact and b_contact.business_connection_id:
+            try:
+                if update.message.text:
+                    sent_msg = await context.bot.send_message(
+                        chat_id=b_contact.chat_id or user_id,
+                        text=update.message.text,
+                        business_connection_id=b_contact.business_connection_id,
+                    )
+            except Exception as be:
+                logger.warning(f"Business connection 转发失败，降级常规发送: {be}")
+
+        if not sent_msg:
+            chat = await context.bot.get_chat(chat_id)
+            sent_msg = await chat.send_copy(
+                update.effective_chat.id, update.message.id, **params
+            )
+
         msg_map = MessageMap(
             group_chat_message_id=update.message.id,
             user_chat_message_id=sent_msg.message_id,
@@ -206,6 +229,12 @@ async def forwarding_message_a2u(update: Update, context: ContextTypes.DEFAULT_T
         )
         db.add(msg_map)
         db.commit()
+        from ..frontdesk.service import record_human_reply
+        record_human_reply(user_id)
+        _txt = update.message.text or update.message.caption
+        if _txt:
+            from ..memory.conversation_store import ConversationStore
+            ConversationStore().add(user_id, "staff", _txt)
 
     except Exception as e:
         await update.message.reply_html(f"发送失败: {e}\n")

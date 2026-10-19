@@ -5,6 +5,7 @@
 2. 管理侧: [接管对话] / [恢复 AI]
 3. 验证码回调
 """
+import html
 import os
 import random
 import time
@@ -17,72 +18,180 @@ from telegram.helpers import mention_html
 from db.database import SessionMaker
 from db.model import User
 
+from ..admin import permissions
 from .. import admin_group_id, admin_user_ids, logger, disable_captcha
 from ..utils import delete_message_later
 from ..start_settings import build_call_human_markup
 from ..middleware.state_machine import ChatMode, set_chat_mode, get_chat_mode
+from ..timeout_tracker import dismiss_care
+from ..ui import edit_card, replace_card, send_card
+from ..ui.cards import (
+    AI_BACK_TEXT,
+    AI_READY_TEXT,
+    HUMAN_MODE_TEXT,
+    admin_control_markup,
+    ai_ready_markup,
+    human_mode_markup,
+    human_request_text,
+)
 
 db = SessionMaker()
+
+
+
+
+async def _safe_answer(query, *args, **kwargs) -> None:
+    """应答回调失败(网络超时等)不能中断后续处理:先更新卡片比让按钮停止转圈更重要。"""
+    try:
+        await query.answer(*args, **kwargs)
+    except Exception as exc:
+        logger.warning("query.answer failed: %s", type(exc).__name__)
+
+
+_ack_tasks: set = set()
+
+
+def _ack(query, *args, **kwargs) -> None:
+    """非阻塞后台应答 query.answer，绝不卡死主界面渲染;任务由模块级集合持有引用,避免被回收。"""
+    import asyncio
+    try:
+        task = asyncio.create_task(_safe_answer(query, *args, **kwargs))
+    except Exception:
+        return
+    _ack_tasks.add(task)
+    task.add_done_callback(_ack_tasks.discard)
+
+
+async def callback_frontdesk(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """前台按钮:来意选择 / 选项作答 / 跳过 / 留言。校验归属,旧卡片乱序点击无副作用。"""
+    from whitecat_core.runtime import lang_for
+    from ..ai_turn import run_first_turn
+    from ..frontdesk import precheck
+    from ..frontdesk.router import advance
+    from ..frontdesk.service import get_role, handoff, in_precheck, is_human_locked
+    from ..frontdesk.texts import t
+    query = update.callback_query
+    logger.info("frontdesk callback: %s from %s", query.data, query.from_user.id)
+    from .user_handlers import ensure_topic_for_customer
+    await ensure_topic_for_customer(query.from_user, context)
+    parts = (query.data or "").split(":")
+    try:
+        kind = parts[0]
+        uid = int(parts[2] if kind == "frontdesk_intent" else parts[1])
+    except (ValueError, IndexError):
+        _ack(query, "这张卡片已失效，请发送 /start 重新开始", show_alert=True)
+        return
+    if query.from_user.id != uid:
+        _ack(query, "这不是您的操作按钮喔", show_alert=True)
+        return
+
+    lang, biz = lang_for(uid), _biz_conn_id(query)
+    if kind == "frontdesk_leave":
+        # D1:客户点旧卡片上的"留言给同事" → 直接问一句话,下一条消息转交
+        _ack(query)
+        if not is_human_locked(uid):
+            from ..frontdesk import router
+            router._esc_set(uid, {"rule": "explicit_human", "reason": "explicit_human", "prio": "P2", "card": "human.done", "orig": ""})
+            from ..config import copy
+            await replace_card(query, copy("human.ask", lang), None, biz)
+        return
+    if is_human_locked(uid):
+        _ack(query, t("pending_short", lang), show_alert=True)
+        return
+    if kind == "frontdesk_intent":
+        role = {"visitor": "prospect"}.get(parts[1], parts[1])           # "先看看"=从业务选择开始
+        if role not in ("prospect", "support", "partner"):
+            _ack(query, t("pick_first", lang), show_alert=True)
+            return
+        precheck.begin(uid, role)
+    elif kind == "frontdesk_ans" and len(parts) == 4:
+        if not precheck.answer(uid, parts[2], parts[3]):
+            _ack(query)
+            return
+    elif kind == "frontdesk_skip" and len(parts) == 3:
+        if not precheck.answer(uid, parts[2], precheck.SKIP):
+            _ack(query)
+            return
+    else:
+        _ack(query)
+        return
+
+    # 非阻塞后台应答按钮，零延迟直接渲染下一张卡片
+    _ack(query)
+
+    async def edit(text, markup):
+        await replace_card(query, text, markup, biz)
+
+    gate = await advance(context.bot, uid, query.message.chat_id, lang, biz, edit=edit)
+    if gate.ai and gate.immediate:
+        await run_first_turn(context.bot, uid, query.message.chat_id, gate.texts, biz)
+
+
+async def callback_fd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """前台"先答"按钮(fd:go / fd:menu / fd:role / fd:pick / fd:cta)。按钮不携带 uid:任何人点击只作用于自己的会话。"""
+    from whitecat_core.runtime import lang_for
+    from ..ai_turn import run_first_turn
+    from ..frontdesk import router
+    query = update.callback_query
+    uid = query.from_user.id
+    from .user_handlers import ensure_topic_for_customer
+    await ensure_topic_for_customer(query.from_user, context)
+    lang, biz = lang_for(uid), _biz_conn_id(query)
+    chat_id = query.message.chat_id if query.message else uid
+
+    async def edit(text, markup):
+        await replace_card(query, text, markup, biz)
+
+    async def send_new(text, markup):
+        await router.send(context.bot, uid, chat_id, text, markup, biz, lang)
+
+    try:
+        gate, alert = await router.handle_fd_callback(context.bot, query, query.data or "", edit=edit, send_new=send_new, lang=lang, biz_conn_id=biz)
+    except Exception:
+        logger.exception("fd callback failed: %s", query.data)
+        _ack(query, "这张卡片已失效，请发送 /start 重新开始", show_alert=True)
+        return
+    _ack(query, alert, show_alert=True) if alert else _ack(query)
+    if gate.ai and gate.immediate:
+        await run_first_turn(context.bot, uid, chat_id, gate.texts, biz)
 
 
 # ==========================================
 # 客户侧：转人工
 # ==========================================
 
+def _biz_conn_id(query) -> str | None:
+    return getattr(query.message, "business_connection_id", None) if query.message else None
+
+
+async def _notify_topic(context: ContextTypes.DEFAULT_TYPE, user_id: int, template: str, markup=None):
+    """向客户所在的管理群话题发送卡片。"""
+    from ..global_settings import get_admin_group_id
+    with SessionMaker() as sdb:
+        u = sdb.query(User).filter(User.user_id == user_id).first()
+        thread_id = u.message_thread_id if u else None
+    if not thread_id:
+        return
+    await send_card(context.bot, get_admin_group_id(), template, markup, message_thread_id=thread_id)
+
+
 async def callback_call_human(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """客户点击 [呼叫老板/转人工] 按钮"""
+    """客户点击 [呼叫客服/转人工] 按钮"""
     query = update.callback_query
     user = query.from_user
 
     # 提取 user_id（确保是本人点击）
     target_user_id = int(query.data.split("_")[-1])
     if user.id != target_user_id:
-        await query.answer("This is not your button", show_alert=True)
+        await query.answer("这不是您的操作按钮喔", show_alert=True)
         return
 
-    await query.answer("Calling boss...")
-
-    # 切换为人工模式
+    await query.answer("已为您转接人工客服")
     set_chat_mode(user.id, ChatMode.HUMAN_MODE)
+    dismiss_care(user.id)
 
-    # 回复客户 — 附带 [恢复AI] 按钮
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton(
-            "🤖 恢复AI对话",
-            callback_data=f"restore_ai_{user.id}",
-        )]
-    ])
-
-    await query.message.reply_text(
-        "已呼叫主理人，请稍候...\n\n"
-        "主理人看到后会第一时间回复你\n"
-        "在此期间你可以继续发送消息，我会帮你转达。\n\n"
-        "如果想重新使用 AI 对话，点击下方按钮即可。",
-        reply_markup=keyboard,
-    )
-
-    # 在管理群 Forum Topic 发送强提醒
-    u = db.query(User).filter(User.user_id == user.id).first()
-    if u and u.message_thread_id:
-        keyboard_admin = InlineKeyboardMarkup([
-            [
-                InlineKeyboardButton("🔕 接管对话", callback_data=f"admin_takeover_{user.id}"),
-                InlineKeyboardButton("🤖 恢复 AI", callback_data=f"admin_restore_{user.id}"),
-            ]
-        ])
-
-        await context.bot.send_message(
-            admin_group_id,
-            (
-                f"🚨🚨🚨 客户呼叫人工 🚨🚨🚨\n\n"
-                f"👤 {mention_html(user.id, user.full_name)}\n"
-                f"📱 {user.id}\n\n"
-                f"请尽快回复！"
-            ),
-            message_thread_id=u.message_thread_id,
-            reply_markup=keyboard_admin,
-            parse_mode="HTML",
-        )
+    await edit_card(query, HUMAN_MODE_TEXT, human_mode_markup(user.id), _biz_conn_id(query))
+    await _notify_topic(context, user.id, human_request_text(user.id, user.full_name), admin_control_markup(user.id))
 
 
 # ==========================================
@@ -90,37 +199,45 @@ async def callback_call_human(update: Update, context: ContextTypes.DEFAULT_TYPE
 # ==========================================
 
 async def callback_restore_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """客户点击 [恢复AI对话] 按钮"""
+    """客户点击 [转接AI为您服务] 按钮"""
     query = update.callback_query
     user = query.from_user
 
     target_user_id = int(query.data.split("_")[-1])
     if user.id != target_user_id:
-        await query.answer("This is not your button", show_alert=True)
+        await query.answer("这不是您的操作按钮喔", show_alert=True)
         return
 
-    set_chat_mode(user.id, ChatMode.AI_MODE)
-    await query.answer("AI mode restored!")
+    if not set_chat_mode(user.id, ChatMode.AI_MODE):
+        await query.answer("人工接管中，请等待人工同事处理", show_alert=True)
+        return
+    await query.answer("AI 数字分身已就绪！")
 
-    keyboard = build_call_human_markup(user.id)
+    # 刷新超时关怀状态
+    context.user_data["last_interaction_time"] = time.time()
+    context.user_data["care_prompt_sent"] = False
 
-    await query.message.reply_text(
-        "🤖 AI 已重新上线！\n\n有什么问题尽管问我，需要人工服务随时点击下方按钮。",
-        reply_markup=keyboard,
+    await edit_card(query, AI_READY_TEXT, ai_ready_markup(user.id), _biz_conn_id(query))
+    await _notify_topic(
+        context, user.id,
+        f"[[robot]] 客户 {mention_html(user.id, user.full_name)} 已自行切换回 AI 模式",
     )
 
-    # 通知管理群
-    u = db.query(User).filter(User.user_id == user.id).first()
-    if u and u.message_thread_id:
-        try:
-            await context.bot.send_message(
-                admin_group_id,
-                f"🤖 客户 {mention_html(user.id, user.full_name)} 已自行恢复 AI 模式",
-                message_thread_id=u.message_thread_id,
-                parse_mode="HTML",
-            )
-        except Exception:
-            pass
+
+async def callback_continue_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """客户在超时关怀卡片中点击 [继续与 AI 分身沟通]"""
+    query = update.callback_query
+    user = query.from_user
+    target_user_id = int(query.data.split("_")[-1])
+    if user.id != target_user_id:
+        await query.answer("这不是您的操作按钮喔", show_alert=True)
+        return
+
+    await query.answer("好的，继续为您解答")
+    dismiss_care(user.id)
+    context.user_data["last_interaction_time"] = time.time()
+    context.user_data["care_prompt_sent"] = False
+    await edit_card(query, AI_READY_TEXT, ai_ready_markup(user.id), _biz_conn_id(query))
 
 
 # ==========================================
@@ -132,17 +249,22 @@ async def callback_admin_takeover(update: Update, context: ContextTypes.DEFAULT_
     query = update.callback_query
     admin = query.from_user
 
-    if admin.id not in admin_user_ids:
+    if not permissions.can(admin.id, "case_ops"):
         await query.answer("No permission", show_alert=True)
         return
 
     target_user_id = int(query.data.split("_")[-1])
+    from ..admin import actions as admin_actions
     set_chat_mode(target_user_id, ChatMode.HUMAN_MODE)
+    admin_actions.take_over(admin.id, target_user_id)      # 同步前台状态 + 审计 + 让在途 AI 回复作废
+    dismiss_care(target_user_id)
 
     await query.answer("Conversation taken over")
-    await query.message.reply_text(
-        f"🔕 管理员 {admin.first_name} 已接管对话\n"
-        f"AI 已关闭，后续消息将直接转发给客户。"
+    await send_card(
+        context.bot, query.message.chat_id,
+        f"[[bell_off]] 管理员 <b>{html.escape(admin.first_name)}</b> 已接管对话\n"
+        f"[[chat]] AI 已关闭，后续消息将直接转发给客户。",
+        message_thread_id=query.message.message_thread_id,
     )
 
 
@@ -155,34 +277,52 @@ async def callback_admin_restore(update: Update, context: ContextTypes.DEFAULT_T
     query = update.callback_query
     admin = query.from_user
 
-    if admin.id not in admin_user_ids:
+    if not permissions.can(admin.id, "case_ops"):
         await query.answer("No permission", show_alert=True)
         return
 
     target_user_id = int(query.data.split("_")[-1])
-    set_chat_mode(target_user_id, ChatMode.AI_MODE)
+    from ..admin import actions as admin_actions
+    if not admin_actions.release_to_ai(admin.id, target_user_id, "话题按钮"):
+        admin_actions.resolve(admin.id, target_user_id)     # 非咨询/售后来意不恢复 AI,改为结案,客户下次来消息重新预检
+    set_chat_mode(target_user_id, ChatMode.AI_MODE, admin_release=True)
 
     await query.answer("AI restored")
-    await query.message.reply_text(
-        f"🤖 管理员 {admin.first_name} 已恢复 AI 模式\n"
-        f"后续消息将由 AI 自动回复。"
+    await send_card(
+        context.bot, query.message.chat_id,
+        f"[[robot]] 管理员 <b>{html.escape(admin.first_name)}</b> 已恢复 AI 模式\n"
+        f"[[chat]] 后续消息将由 AI 自动回复。",
+        message_thread_id=query.message.message_thread_id,
     )
 
-    # 通知客户
+    # 通知客户（Business 客户无法由 Bot 直接私信，失败忽略）
+    await send_card(context.bot, target_user_id, AI_BACK_TEXT, ai_ready_markup(target_user_id))
+
+
+# ==========================================
+# 管理侧：标记成交
+# ==========================================
+
+async def callback_lead_won(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """管理员在线索卡上点击 [标记成交]"""
+    query = update.callback_query
+    admin = query.from_user
+    if not permissions.can(admin.id, "case_ops"):
+        await query.answer("No permission", show_alert=True)
+        return
+
+    target_user_id = int(query.data.split("_")[-1])
+    await query.answer("已标记成交")
     try:
-        keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton(
-                "👩‍💻 呼叫老板/转人工",
-                callback_data=f"call_human_{target_user_id}",
-            )]
-        ])
-        await context.bot.send_message(
-            target_user_id,
-            "🤖 AI 助手已重新上线！\n\n有什么问题继续问我，需要人工服务随时点按钮。",
-            reply_markup=keyboard,
-        )
+        await query.edit_message_reply_markup(admin_control_markup(target_user_id, won=True))
     except Exception:
         pass
+    await send_card(
+        context.bot, query.message.chat_id,
+        f"[[party]] <b>成交！</b> 客户 <code>{target_user_id}</code> "
+        f"由 <b>{html.escape(admin.first_name)}</b> 标记为已成交 [[money]]",
+        message_thread_id=query.message.message_thread_id,
+    )
 
 
 # ==========================================
@@ -194,7 +334,7 @@ async def callback_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYP
     query = update.callback_query
     admin = query.from_user
 
-    if admin.id not in admin_user_ids:
+    if not permissions.can(admin.id, "view"):
         await query.answer("No permission", show_alert=True)
         return
 
@@ -312,25 +452,13 @@ async def callback_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYP
         )
 
     elif action == "panel_reset_all_ai":
-        # 重置所有用户为 AI 模式
-        db.query(User).filter(User.chat_mode == "HUMAN_MODE").update(
-            {"chat_mode": "AI_MODE"}
-        )
-        db.commit()
-        await query.answer("All users reset to AI mode!")
-        await query.message.edit_text(
-            "已将所有用户重置为 AI 模式。",
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("◀ 返回主菜单", callback_data="panel_main")]
-            ]),
-        )
+        # 已移除:批量恢复 AI 会绕过人工接管与额度,请在控制台逐个客户处理
+        await query.answer("该功能已移除，请在控制台逐个客户处理", show_alert=True)
+        return
 
     elif action == "panel_main":
-        from .command_handlers import _get_admin_panel_keyboard
-        await query.message.edit_text(
-            _get_admin_panel_text(),
-            reply_markup=_get_admin_panel_keyboard(),
-        )
+        from ..admin import views
+        await edit_card(query, *views.home(), None)
 
     await query.answer()
 
@@ -347,38 +475,39 @@ def _get_admin_panel_text():
 # 验证码回调
 # ==========================================
 
-async def check_human(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """人机验证"""
-    user = update.effective_user
-    if context.user_data.get("is_human", False) is False:
-        if context.user_data.get("is_human_error_time", 0) > time.time() - 120:
-            await update.message.reply_html("你已经被禁言,请稍后再尝试。")
-            return False
-        file_name = random.choice(os.listdir("./assets/imgs"))
-        code = file_name.replace("image_", "").replace(".png", "")
-        file = f"./assets/imgs/{file_name}"
-        codes = ["".join(random.sample(letters, 5)) for _ in range(0, 7)]
-        codes.append(code)
-        random.shuffle(codes)
-
-        photo = context.bot_data.get(f"image|{code}")
-        if not photo:
-            photo = file
-        buttons = [
-            InlineKeyboardButton(x, callback_data=f"vcode_{x}_{user.id}") for x in codes
-        ]
-        button_matrix = [buttons[i : i + 4] for i in range(0, len(buttons), 4)]
-        sent = await update.message.reply_photo(
-            photo,
-            f"{mention_html(user.id, user.first_name)}请选择图片中的文字。回答错误将无法联系客服。",
-            reply_markup=InlineKeyboardMarkup(button_matrix),
-            parse_mode="HTML",
-        )
-        biggest_photo = sorted(sent.photo, key=lambda x: x.file_size, reverse=True)[0]
-        context.bot_data[f"image|{code}"] = biggest_photo.file_id
-        context.user_data["vcode"] = code
+async def send_challenge(bot, chat_id: int, user, context, lang: str = "zh", biz_conn_id: str | None = None) -> None:
+    """发送一次图片验证码(仅在频繁超额调用 AI 时由 abuse 判定触发)。"""
+    file_name = random.choice(os.listdir("./assets/imgs"))
+    code = file_name.replace("image_", "").replace(".png", "")
+    file = f"./assets/imgs/{file_name}"
+    codes = ["".join(random.sample(letters, 5)) for _ in range(0, 7)]
+    codes.append(code)
+    random.shuffle(codes)
+    photo = context.bot_data.get(f"image|{code}") or file
+    buttons = [InlineKeyboardButton(x, callback_data=f"vcode_{x}_{user.id}") for x in codes]
+    matrix = [buttons[i: i + 4] for i in range(0, len(buttons), 4)]
+    caption = (
+        f"{mention_html(user.id, user.first_name)} 为保障服务稳定，请先完成一次简单验证：选择图片中的文字。"
+        if lang != "en" else
+        f"{mention_html(user.id, user.first_name)} To keep the service stable, please complete a quick check: pick the text shown in the image."
+    )
+    kwargs = {"business_connection_id": biz_conn_id} if biz_conn_id else {}
+    sent = await bot.send_photo(chat_id, photo, caption=caption, reply_markup=InlineKeyboardMarkup(matrix), parse_mode="HTML", **kwargs)
+    biggest = sorted(sent.photo, key=lambda x: x.file_size, reverse=True)[0]
+    context.bot_data[f"image|{code}"] = biggest.file_id
+    context.user_data["vcode"] = code
+    if not biz_conn_id:
         await delete_message_later(60, sent.chat.id, sent.message_id, context)
+
+
+async def challenge_if_abusive(bot, chat_id: int, user, context, lang: str = "zh", biz_conn_id: str | None = None) -> bool:
+    """True = 已拦下并发出验证(或处于冷却),调用方应停止处理本条消息。"""
+    from ..frontdesk.abuse import needs_challenge
+    if not needs_challenge(user.id):
         return False
+    if context.user_data.get("is_human_error_time", 0) > time.time() - 120:
+        return True                      # 刚答错:冷却 2 分钟,不重复打扰
+    await send_challenge(bot, chat_id, user, context, lang, biz_conn_id)
     return True
 
 
@@ -397,7 +526,44 @@ async def callback_query_vcode(update: Update, context: ContextTypes.DEFAULT_TYP
                 parse_mode="HTML",
             )
             context.user_data["is_human"] = True
+            from ..frontdesk.abuse import mark_verified
+            mark_verified(user.id)
         else:
             await query.answer("Wrong, muted 2 minutes")
             context.user_data["is_human_error_time"] = time.time()
     await query.message.delete()
+
+
+async def callback_set_lang(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """语言选择按钮回调 (支持 set_lang:zh / lang:zh / set_lang:en / lang:en)"""
+    query = update.callback_query
+    if not query:
+        return
+    _ack(query)
+    data = query.data or ""
+    chosen_lang = data.split(":", 1)[1] if ":" in data else "zh"
+    user = query.from_user
+    chat_id = update.effective_chat.id if update.effective_chat else user.id
+
+    from whitecat_core import runtime
+    runtime.force_lang(user.id, chosen_lang)
+
+    from ..middleware.state_machine import ChatMode, set_chat_mode
+    set_chat_mode(user.id, ChatMode.AI_MODE)
+
+    from .user_handlers import ensure_topic_for_customer
+    await ensure_topic_for_customer(user, context)
+
+    from ..frontdesk.cards import welcome_text, welcome_markup
+    from ..frontdesk import router
+    from ..ui import render
+
+    text = render(welcome_text(chosen_lang))
+    markup = welcome_markup(user.id, chosen_lang, router.case_source(user.id))
+
+    try:
+        await query.edit_message_text(text=text, reply_markup=markup, parse_mode="HTML")
+    except Exception:
+        from ..ui import send_card
+        await send_card(context.bot, chat_id, welcome_text(chosen_lang), markup)
+

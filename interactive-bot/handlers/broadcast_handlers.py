@@ -11,6 +11,7 @@ from telegram.ext import ApplicationHandlerStop, ContextTypes
 from db.database import SessionMaker, engine
 from db.model import BusinessContact, User
 
+from ..admin import permissions
 from .. import admin_group_id, admin_user_ids, logger
 
 
@@ -75,7 +76,7 @@ def upsert_business_contact(message) -> None:
 async def callback_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     admin = query.from_user
-    if admin.id not in admin_user_ids:
+    if not permissions.can(admin.id, "broadcast"):
         await query.answer("No permission", show_alert=True)
         return
 
@@ -123,7 +124,7 @@ async def callback_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def handle_admin_broadcast_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    if user.id not in admin_user_ids:
+    if not permissions.can(user.id, "broadcast"):
         return
 
     message = update.effective_message

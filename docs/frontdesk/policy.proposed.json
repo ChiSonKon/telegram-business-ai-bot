@@ -1,0 +1,154 @@
+{
+  "schema_version": "proposal.v1",
+  "status": "design_only_not_loaded_by_bot",
+  "brand": "白猫自动化前台预检系统",
+  "timezone": "Asia/Shanghai",
+  "roles": [
+    "prospect",
+    "support",
+    "partner",
+    "visitor"
+  ],
+  "states": [
+    "FRONTDESK",
+    "AI_SALES",
+    "AI_SUPPORT",
+    "AI_PARTNER",
+    "HUMAN_PENDING",
+    "HUMAN_ACTIVE",
+    "RESOLVED"
+  ],
+  "frontdesk": {
+    "required_sales_fields": [
+      "product_id",
+      "need"
+    ],
+    "budget_required": false,
+    "max_initial_classification_calls": 1,
+    "preserve_initial_message": true,
+    "order_id_required_for_support_intake": false,
+    "self_declared_customer_is_verified": false
+  },
+  "quotas": {
+    "scope": [
+      "business_owner_id",
+      "customer_user_id"
+    ],
+    "rolling_window_hours": 24,
+    "sales": {
+      "session_reply_limit": 12,
+      "qualified_extension_replies": 6,
+      "max_extensions": 1,
+      "hard_session_reply_limit": 18,
+      "rolling_reply_limit": 24
+    },
+    "support": {
+      "session_reply_limit": 6,
+      "rolling_reply_limit": 12
+    },
+    "partner": {
+      "session_reply_limit": 4,
+      "rolling_reply_limit": 8
+    },
+    "all_roles_rolling_reply_limit": 30,
+    "all_roles_rolling_model_attempt_limit": 60,
+    "request_input_token_limit": 6000,
+    "request_output_token_limit": 600,
+    "classification_output_token_limit": 200,
+    "session_input_token_limit": 60000,
+    "session_output_token_limit": 6000,
+    "global_daily_cost_usd": 5,
+    "unpriced_model_policy": "disable_automatic_calls",
+    "reserve_before_request": true,
+    "unknown_cost_policy": "retain_reservation_until_reconciled",
+    "max_provider_attempts_per_turn": 2,
+    "sdk_max_retries": 0,
+    "provider_timeout_seconds": 20,
+    "turn_timeout_seconds": 40,
+    "soft_warning_remaining_replies": 2,
+    "welcome_counts_as_reply": true,
+    "failed_send_counts_as_successful_reply": false,
+    "failed_send_model_cost_is_recorded": true
+  },
+  "intent": {
+    "labels": [
+      "business_relevant",
+      "exploring",
+      "off_topic",
+      "explicitly_no_business",
+      "uncertain"
+    ],
+    "warn_on_first_off_topic": true,
+    "further_consecutive_off_topic_messages_before_handoff": 2,
+    "uncertain_messages_before_clarification_handoff": 2,
+    "uncertain_increments_off_topic": false,
+    "explicitly_no_business_handoff": true,
+    "support_uses_sales_intent_gate": false,
+    "never_treat_as_no_intent_alone": [
+      "unknown_budget",
+      "price_objection",
+      "comparison",
+      "browsing",
+      "asks_if_ai",
+      "requests_examples"
+    ]
+  },
+  "handoff": {
+    "cancel_pending_generation": true,
+    "check_state_before_every_send": true,
+    "persist_before_notify": true,
+    "old_callbacks_can_resume_ai": false,
+    "admin_lock_requires_admin_release": true,
+    "low_intent_recheck_cooldown_hours": 24,
+    "recheck_resets_usage": false,
+    "idle_after_minutes": 30,
+    "idle_resets_usage": false,
+    "automatic_idle_followup": false
+  },
+  "knowledge": {
+    "allowed_domains": [
+      "tg.web3baimao.com",
+      "web3baimao.com",
+      "airdrop.web3baimao.com",
+      "faka.web3baimao.com",
+      "bai-mao.gitbook.io",
+      "github.com/ChiSonKon",
+      "t.me/oxbaimaobot",
+      "t.me/baimaotgbot"
+    ],
+    "refresh_interval_hours": 24,
+    "feature_stale_after_days": 7,
+    "reference_price_valid_hours": 24,
+    "commercial_changes_require_review": true,
+    "scrape_failure_policy": "keep_last_success_and_notify_admin",
+    "source_priority": [
+      "valid_confirmed_order_or_quote",
+      "official_checkout_or_approved_catalog",
+      "public_reference_snapshot"
+    ]
+  },
+  "payment": {
+    "receipt_is_payment_proof": false,
+    "confirmed_by": [
+      "verified_provider_event",
+      "trusted_order_query",
+      "authorized_admin_verification"
+    ],
+    "llm_can_create_payment_address": false,
+    "sales_won_implies_paid": false,
+    "fallback_without_order_api": "official_purchase_instructions_or_manual_quote"
+  },
+  "emoji": {
+    "primary_set": "tgmacicons",
+    "secondary_set": "NewsEmoji",
+    "normal_emoji_fallback": true,
+    "capability_cache_scope": "send_context"
+  },
+  "copy": {
+    "off_topic_reminder": "💬 我主要协助处理白猫产品、购买和售后问题。您想继续了解哪项业务？如果只是想给主理人留话，我也可以帮您转交。",
+    "ai_ended": "💬 本次 AI 咨询已结束，已为您转入人工留言。\n您可以直接在这里补充需求或留下问题。人工同事查看后会在当前会话回复您，无需重复提交，感谢耐心等候。",
+    "quota_ended": "🕔 本次 AI 接待已达到咨询上限，后续由人工继续协助。\n您的需求和沟通记录已保留。请在这里留言，人工同事查看后会回复您。",
+    "handoff_not_yet_delivered": "📝 留言已保存，正在转交人工。您可以继续在这里补充信息，无需重复提交。",
+    "payment_review": "🧾 付款凭证已收到，正在等待核对。\n请补充订单号或交易流水号，便于匹配。核验完成后会通知您后续交付安排。"
+  }
+}

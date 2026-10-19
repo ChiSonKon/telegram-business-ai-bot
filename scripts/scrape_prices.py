@@ -24,7 +24,7 @@ logging.basicConfig(
 async def main():
     print("🕷️ 开始抓取 web3baimao.com 数据...")
     result = await run_scraper()
-    print(f"✅ 抓取完成，共 {len(result.get('scraped_products', []))} 个发卡网商品，{len(result.get('scraped_services', []))} 个服务介绍")
+    print(f"✅ 抓取完成，共 {len(result.get('quarantine', {}).get('scraped_products', []))} 个发卡网商品，{len(result.get('quarantine', {}).get('scraped_services', []))} 个服务介绍")
     print(f"📁 数据已保存到 knowledge_base.json")
 
 

@@ -1,155 +1,861 @@
 {
-  "brand": {
-    "name": "白猫工作室 (Web3Baimao)",
-    "slogan": "专业Web3安全研发，领先的智能机器人与合约开发服务商",
-    "identity": "Web3软件开发、智能合约定制、Telegram/Discord社群系统与安全顾问",
-    "boss_name": "白猫主理人",
-    "differentiator": "顶尖极客团队，源码级安全交付，24小时运维保障，支持大额对公与智能合约U收付款"
-  },
-  "core_business": [
+  "schema": "kb.v2",
+  "sources": [
     {
-      "name": "Telegram/Discord 智能机器人开发",
-      "en": "Custom Chatbot & Integrations",
-      "icon": "🤖",
-      "pain": "普通机器人回复死板、功能单一，无法满足Web3复杂的社区及业务交互需求",
-      "solution": "全线提供AI自动回复、RAG知识库、客服多Topic分流人工接管、链上钱包验资、防Sybil防刷等多功能定制机器人开发"
+      "url": "https://web3baimao.com/",
+      "fetched": "2026-10-12",
+      "note": "九大业务介绍主站，涵盖真实成交记录与客户好评"
     },
     {
-      "name": "Web3 智能合约开发与安全审计",
-      "en": "Smart Contract & Security Audit",
-      "icon": "🛡️",
-      "pain": "智能合约漏洞风险极高，不合规的安全隐患随时面临资产归零或协议受攻击的可能",
-      "solution": "提供ERC20/ERC721/ERC1155等代币与NFT合约设计，质押DeFi、DApp链上逻辑实现，配套全方位的自动化安全漏洞审计"
+      "url": "https://tg.web3baimao.com",
+      "fetched": "2026-10-12",
+      "note": "WhiteCat 5.0 获客与自动化软件官网介绍与下载"
     },
     {
-      "name": "Web3 社区自动化与矩阵系统",
-      "en": "Web3 Growth & Matrix Systems",
-      "icon": "📱",
-      "pain": "多账号批量管理混乱、高昂的验证码代开成本，以及项目冷启动时的社群引流焦虑",
-      "solution": "提供推特/TG/Discord批量账号代管与协议群发矩阵管理系统，支持1小时高并发部署，提供稳定的私域增量支持"
+      "url": "https://airdrop.web3baimao.com/",
+      "fetched": "2026-10-12",
+      "note": "全业务详细介绍与参考价格"
     }
   ],
+  "brand": {
+    "name": "白猫工作室 WhiteCat Studio",
+    "slogan": "Web3 × AI 自动化工坊",
+    "identity": "提供 Telegram 自动化软件、机器人定制、网络资源与 AI 账号相关服务",
+    "price_note": "以下价格为官网公开参考价，成交以官方购买页实时显示或客服出具的报价单为准，批量可议。"
+  },
+  "official": {
+    "website": "https://tg.web3baimao.com",
+    "main_site": "https://web3baimao.com",
+    "purchase_bot": "@oxbaimaobot",
+    "purchase_bot_url": "https://t.me/oxbaimaobot",
+    "protocol_bot": "@baimaotgbot",
+    "protocol_bot_url": "https://t.me/baimaotgbot",
+    "releases": "https://github.com/ChiSonKon/tg-sender-releases/releases/latest",
+    "docs": "https://bai-mao.gitbook.io/bai-mao-docs/",
+    "install_guide": "https://github.com/ChiSonKon/tg-sender-releases/blob/main/docs/getting_started/desktop_install.md",
+    "airdrop_site": "https://airdrop.web3baimao.com",
+    "sites_note": "web3baimao.com=综合业务介绍、成交案例与客户好评主站(各业务线通用);tg.web3baimao.com=WhiteCat 5.0 获客软件官网(下载、价格、FAQ、合伙人);airdrop.web3baimao.com=空投业务官网(会员方案、KOL 转发圈、教程)。按客户问的业务发对应站点,不要混用。"
+  },
   "products": [
     {
-      "name": "Web3 智能双向接待客服机器人 (标准版)",
-      "category": "智能机器人",
-      "target": "初创Web3项目方/社群主",
-      "featured": true,
-      "features": [
-        "支持 Telegram Business 私聊双向绑定后台群组话题",
-        "AI自动回复 + 人工一键接管与释放",
-        "基于 knowledge_base.json 文件的 RAG 本地向量数据库检索",
-        "极速24小时内部署上线，提供3个月免费运维保障"
+      "id": "software",
+      "line": "software",
+      "name": "WhiteCat 5.0（Telegram 获客与自动化桌面软件）",
+      "version": "v5.0.2",
+      "summary": "21 个业务模块、53 项 MCP 工具、9 条引导工作流的桌面软件；Windows / macOS。",
+      "keywords": [
+        "软件",
+        "whitecat",
+        "5.0",
+        "获客",
+        "授权",
+        "卡密",
+        "试用",
+        "安装",
+        "养号",
+        "采集",
+        "群发",
+        "私信",
+        "监听",
+        "频道克隆",
+        "mcp",
+        "agent",
+        "套餐",
+        "续费",
+        "激活"
       ],
-      "purchase_url": "https://web3baimao.com/",
-      "contact_required": true,
-      "contact_note": "定制请联系白猫工作室官方客服 (@oxbaimao)"
+      "features": [
+        "分阶段智能养号：新号先隔离体检，再逐级放开额度；账号矩阵按号龄分级风控，代理漂移先提醒",
+        "多路触达：电话唤醒 → 原生语音条 → 圆形视频 → 文字兜底，顺序可自定义，失败自动进入下一步",
+        "6 种消息形态：名片、投票、多图相册、内联按钮图文、圆形视频、回复对方动态",
+        "关键词商机监听：7×24 监听群内关键词，支持排除词、正则、来源群限定，命中后可一键进入私信触达",
+        "频道全自动克隆：多源频道监控、清理广告尾巴、替换链接、断点续跑",
+        "进群人机验证自动求解：算术题、按钮点选、跳转私聊验证等；图片类需自配看图 AI；成功率因群的验证方式而异",
+        "AI Agent / MCP：53 项工具，可由 Claude、Codex、Cursor 等 Agent 接管；写操作需在设置中明确允许，有副作用的动作默认先预览",
+        "本地隐私：账号 Session 与数据只保存在本机；更新包有签名与哈希校验；卡密本机加密保存"
+      ],
+      "platforms": "Windows 10/11 x64（安装版推荐，自带自动更新；另有便携版）；macOS Apple Silicon（M1–M4）与 Intel（dmg / zip）。各版本内置语音转码，无需另装 Python。",
+      "plans": [
+        {
+          "name": "尝鲜体验卡",
+          "price": "6.9",
+          "unit": "U",
+          "duration": "3 天",
+          "seats": "单设备",
+          "note": "每台设备限购 1 次",
+          "name_en": "Starter pass"
+        },
+        {
+          "name": "月度旗舰版",
+          "price": "29",
+          "unit": "U",
+          "duration": "30 天",
+          "seats": "单设备",
+          "note": "到期前提醒续费",
+          "name_en": "Monthly"
+        },
+        {
+          "name": "季度进阶版",
+          "price": "69",
+          "unit": "U",
+          "duration": "90 天",
+          "seats": "单设备",
+          "note": "比按月购买更省",
+          "name_en": "Quarterly"
+        },
+        {
+          "name": "年度专业版",
+          "price": "199",
+          "unit": "U",
+          "duration": "365 天",
+          "seats": "单设备",
+          "note": "官网标注最受欢迎",
+          "name_en": "Annual"
+        },
+        {
+          "name": "创世合伙人·终身版",
+          "price": "399",
+          "unit": "U",
+          "duration": "永久",
+          "seats": "3 个设备席位",
+          "note": "可领取渠道合伙人权益，支持 OEM 品牌定制",
+          "name_en": "Founding Partner · Lifetime"
+        }
+      ],
+      "facts": [
+        "新设备自带免费试用（官网未写明具体时长与功能限制，请以软件内显示为准）",
+        "可在软件内一键购买，卡密自动发放并自动激活；也可通过官方购买机器人 @oxbaimaobot 购买",
+        "官网未公开支付方式细则与退款条款，涉及退款、到账、激活异常需由同事核对订单",
+        "官网说明软件暂未购买代码签名，首次运行可能被系统拦截，需按安装指南放行一次",
+        "AI 相关功能需用户自行配置模型 Key",
+        "须在合法、合规、获得授权的前提下使用，并遵守 Telegram 服务条款与当地法律；私信回复率、过验证成功率等均因对方设置而异，不做任何效果保证"
+      ]
     },
     {
-      "name": "Web3 智能双向接待客服机器人 (定制开发版)",
-      "category": "智能机器人",
-      "target": "中大型项目方/复杂业务定制",
-      "featured": true,
-      "features": [
-        "支持链上资产/NFT持有验资，自定义准入条件",
-        "多模态 LLM 自动切换与容灾负载均衡机制",
-        "无缝接入自建数据库/CRM/工单系统，并定制特定提示词",
-        "全源码交付，赠送高级防红防封技术支持与永久紧急运维"
+      "id": "bot_custom",
+      "line": "bot_custom",
+      "name": "Telegram 机器人 / 自动化定制开发",
+      "summary": "按功能复杂度定价，288U 起；先沟通需求，再由同事出具报价单。",
+      "keywords": [
+        "定制",
+        "开发",
+        "机器人",
+        "bot",
+        "自动化",
+        "脚本",
+        "客服",
+        "发卡",
+        "商城",
+        "交易",
+        "meme",
+        "监听",
+        "报价",
+        "交付"
       ],
-      "purchase_url": "https://web3baimao.com/",
-      "contact_required": true,
-      "contact_note": "请联系白猫工作室主理人 (@oxbaimao) 详谈定制方案"
+      "features": [
+        "常见类型：监听引流机器人、AI 双向客服、发卡商城、链上交易 Bot、业务自动化脚本",
+        "流程：提需求 → 报价确认 → 开工交付 → 验收售后"
+      ],
+      "plans": [
+        {
+          "name": "定制开发",
+          "price": "288",
+          "unit": "U 起",
+          "duration": "按需求",
+          "seats": "",
+          "note": "公开起价，不等于任何具体项目的最终报价"
+        }
+      ],
+      "facts": [
+        "官网宣称“最快 3 小时交付”，仅适用于简单需求；具体交期以报价单为准，不得向客户承诺",
+        "官网承诺“谈好的价格，绝不随意涨价”",
+        "最终报价必须由同事出具报价单，AI 不得给出确定价格或交期"
+      ]
     },
     {
-      "name": "智能合约定制开发与第三方安全审计",
-      "category": "区块链开发",
-      "target": "DeFi/DApp/NFT项目方",
-      "featured": false,
-      "features": [
-        "涵盖主流ERC系列标准、流动性池、质押分红等高级逻辑",
-        "极高测试覆盖率 (单元测试、黑盒测试)，确保线上无逻辑死锁",
-        "交付包含详细漏洞筛查、气量优化分析的权威级安全审计报告",
-        "支持主网/测试网一键部署及API调用对接"
+      "id": "network",
+      "line": "network",
+      "name": "独享静态网络（IP）",
+      "summary": "独享机房与住宅静态 IP，机房 0.43U ~ 2U / 条阶梯价，住宅 2U ~ 3U / 条，30 天续费预警。",
+      "keywords": [
+        "ip",
+        "静态",
+        "住宅",
+        "机房",
+        "网络",
+        "代理",
+        "节点",
+        "独享"
       ],
-      "purchase_url": "https://web3baimao.com/",
-      "contact_required": true,
-      "contact_note": "请联系白猫工作室官方客服 (@oxbaimao)"
+      "features": [
+        "类型：独享机房 IP、独享住宅 IP",
+        "服务：30 天续费预警"
+      ],
+      "plans": [
+        {
+          "name": "机房静态 1~10 条",
+          "price": "2",
+          "unit": "U / 条起",
+          "duration": "30 天",
+          "seats": "",
+          "note": "机房起步价"
+        },
+        {
+          "name": "机房静态 10~20 条",
+          "price": "1.5",
+          "unit": "U / 条",
+          "duration": "30 天",
+          "seats": "",
+          "note": "机房小批量"
+        },
+        {
+          "name": "机房静态 20~200 条",
+          "price": "1",
+          "unit": "U / 条",
+          "duration": "30 天",
+          "seats": "",
+          "note": "机房中批量"
+        },
+        {
+          "name": "机房静态 200~400 条",
+          "price": "0.5",
+          "unit": "U / 条",
+          "duration": "30 天",
+          "seats": "",
+          "note": "机房大批量"
+        },
+        {
+          "name": "机房静态 500 条以上",
+          "price": "0.43",
+          "unit": "U / 条",
+          "duration": "30 天",
+          "seats": "",
+          "note": "机房批发量大价"
+        },
+        {
+          "name": "住宅静态 1~20 条",
+          "price": "3",
+          "unit": "U / 条",
+          "duration": "30 天",
+          "seats": "",
+          "note": "住宅散条"
+        },
+        {
+          "name": "住宅静态 20 条以上",
+          "price": "2",
+          "unit": "U / 条",
+          "duration": "30 天",
+          "seats": "",
+          "note": "住宅批量"
+        }
+      ],
+      "facts": [
+        "库存和实时价格官网没有公开，AI 不得承诺库存，需同事核实"
+      ]
     },
     {
-      "name": "Telegram / Discord 群控协议与防刷验证系统",
-      "category": "社媒运营工具",
-      "target": "空投工作室/矩阵KOL团队",
-      "featured": false,
-      "features": [
-        "支持上千账号的高并发API群发 and 动态交互模拟",
-        "完美绕过TG/DC的风控监测，保证账号高存活率",
-        "内置高级图形验证码/人机校验过滤模块，防机器人刷取",
-        "提供可视化控制面板，支持账号分组与数据一键导出"
+      "id": "ai_account",
+      "line": "ai_account",
+      "name": "AI 大模型账号服务（代充与成品）",
+      "summary": "ChatGPT Plus / Pro、Gemini Pro、Claude 等相关服务。Plus 参考价 23U，Gemini Pro 8U，Pro 多倍率可选。",
+      "keywords": [
+        "ai",
+        "chatgpt",
+        "gpt",
+        "plus",
+        "pro",
+        "gemini",
+        "claude",
+        "代充",
+        "ai账号",
+        "订阅"
       ],
-      "purchase_url": "https://web3baimao.com/",
-      "contact_required": true,
-      "contact_note": "请联系白猫工作室官方客服 (@oxbaimao)"
+      "features": [
+        "官网称购买期间“无限售后断补”"
+      ],
+      "plans": [
+        {
+          "name": "ChatGPT Plus",
+          "price": "23",
+          "unit": "U",
+          "duration": "",
+          "seats": "",
+          "note": "手搓代充 / 成品"
+        },
+        {
+          "name": "Gemini Pro 成品",
+          "price": "8",
+          "unit": "U",
+          "duration": "",
+          "seats": "",
+          "note": "成品账号"
+        },
+        {
+          "name": "ChatGPT Pro 5x",
+          "price": "120",
+          "unit": "U",
+          "duration": "",
+          "seats": "",
+          "note": "5 倍率额度"
+        },
+        {
+          "name": "ChatGPT Pro 20x",
+          "price": "210",
+          "unit": "U",
+          "duration": "",
+          "seats": "",
+          "note": "20 倍率额度"
+        },
+        {
+          "name": "ChatGPT Pro 25x",
+          "price": "510",
+          "unit": "U",
+          "duration": "",
+          "seats": "",
+          "note": "25 倍率额度"
+        },
+        {
+          "name": "Claude",
+          "price": "暂无报价",
+          "unit": "",
+          "duration": "",
+          "seats": "",
+          "note": "暂无现货，以同事确认为准"
+        }
+      ],
+      "facts": [
+        "绝不索要客户的账号密码、验证码或密钥",
+        "具体品类、库存与售后条款需同事确认"
+      ]
+    },
+    {
+      "id": "kyc",
+      "line": "kyc",
+      "name": "平台认证与 KYC 服务",
+      "summary": "海外平台与各类交易所 KYC 认证服务，按软件平台与国家地区评估定价：交易所20U起（东南亚20U、欧美80U），Sumsub 80U，其他软件联系同事报价。",
+      "keywords": [
+        "认证",
+        "kyc",
+        "stripe",
+        "sumsub",
+        "didit",
+        "okx",
+        "币安",
+        "binance",
+        "bybit",
+        "实名",
+        "出海认证",
+        "交易所kyc",
+        "verification"
+      ],
+      "features": [
+        "协同认证，不碰账户密码，不索要私钥",
+        "支持各类主流交易所、Sumsub 等主流合规平台"
+      ],
+      "plans": [
+        {
+          "name": "主流交易所 KYC（东南亚）",
+          "price": "20",
+          "unit": "U",
+          "duration": "单次",
+          "seats": "",
+          "note": "主流交易所，东南亚国家地区"
+        },
+        {
+          "name": "主流交易所 KYC（欧美）",
+          "price": "80",
+          "unit": "U",
+          "duration": "单次",
+          "seats": "",
+          "note": "主流交易所，欧美国家地区"
+        },
+        {
+          "name": "Sumsub 认证",
+          "price": "80",
+          "unit": "U",
+          "duration": "单次",
+          "seats": "",
+          "note": "Sumsub 平台合规认证"
+        },
+        {
+          "name": "其他软件 / 平台",
+          "price": "联系报价",
+          "unit": "",
+          "duration": "",
+          "seats": "",
+          "note": "其他特定软件联系同事评估报价"
+        }
+      ],
+      "facts": [
+        "支持承接各类 KYC 业务，看软件和国家评估：东南亚20U、欧美80U、Sumsub 80U，其他软件需联系同事报价",
+        "绝不索要客户账户密码、验证码或助记词私钥"
+      ]
+    },
+    {
+      "id": "account",
+      "line": "account",
+      "name": "社交账号与协议号服务",
+      "summary": "海外社媒账号与协议号资源服务。TG 协议号自助购买机器人，推特蓝V、DC号、Gmail 等。",
+      "keywords": [
+        "号池",
+        "账号",
+        "推特",
+        "蓝v",
+        "tdata",
+        "协议号",
+        "老号",
+        "gmail",
+        "dc老号",
+        "accounts"
+      ],
+      "features": [
+        "TG 协议号（tdata / session）直接通过自助机器人购买：https://t.me/baimaotgbot",
+        "推特蓝V官方年费认证、Discord、企业与个人 Gmail"
+      ],
+      "plans": [
+        {
+          "name": "TG 协议号（tdata / session）",
+          "price": "自助购买",
+          "unit": "",
+          "duration": "",
+          "seats": "",
+          "note": "直接去机器人购买：https://t.me/baimaotgbot"
+        },
+        {
+          "name": "推特蓝V",
+          "price": "90",
+          "unit": "U / 年",
+          "duration": "1 年",
+          "seats": "",
+          "note": "年费订阅认证"
+        },
+        {
+          "name": "DC 账号",
+          "price": "0.5",
+          "unit": "U / 个",
+          "duration": "",
+          "seats": "",
+          "note": "Discord 基础账号"
+        },
+        {
+          "name": "Gmail 企业邮箱",
+          "price": "0.5",
+          "unit": "U / 个",
+          "duration": "",
+          "seats": "",
+          "note": "企业域名邮箱"
+        },
+        {
+          "name": "个人 Gmail 老号",
+          "price": "3",
+          "unit": "U / 个",
+          "duration": "",
+          "seats": "",
+          "note": "高权重老号（10 个起 2 U / 个）"
+        }
+      ],
+      "facts": [
+        "TG 协议号（tdata/session）请引导客户直接去机器人 https://t.me/baimaotgbot 选购",
+        "九大业务介绍主站（涵盖真实成交记录与客户好评）：https://web3baimao.com/",
+        "各业务详细介绍与参考价格页：https://airdrop.web3baimao.com/",
+        "WhiteCat 5.0 获客软件官网介绍与下载：https://tg.web3baimao.com/"
+      ]
+    },
+    {
+      "id": "airdrop",
+      "line": "airdrop",
+      "extra": true,
+      "name": "Web3 空投军火库 · 会员教学 · KOL 转发圈",
+      "summary": "专注于 Web3 撸空投、链上套利、量化交易与 KOL 顶级信息转发圈。提供 1 对 1 手把手教学（部分套餐支持线下！）、自动化脚本库及全套底层隔离环境。",
+      "keywords": [
+        "空投",
+        "airdrop",
+        "撸空投",
+        "军火库",
+        "kol",
+        "转发圈",
+        "套利",
+        "量化",
+        "教学",
+        "线下教学",
+        "脚本库"
+      ],
+      "features": [
+        "1 对 1 手把手保姆级教学（入门到精通，高阶套餐支持线下指导）",
+        "全套自动化脚本库（全年持续更新，包含多环境风控防关联隔离体系）",
+        "包含三件套与独享纯净 IP 赠送及后续源头超低续费价",
+        "亚洲大型币圈顶级策略实时转发群（汇聚主流合约KOL、一级市场大V、国外顶级交易社区与链上AI清算信号）",
+        "真实成交与实盘反馈频道：https://t.me/biqrxnxiYW"
+      ],
+      "url": "https://airdrop.web3baimao.com/",
+      "plans": [
+        {
+          "name": "空投会员·标准版",
+          "price": "588",
+          "unit": "U / 年",
+          "duration": "1 年",
+          "seats": "1 台脚本设备",
+          "note": "1对1教学、全年脚本更新、送20套三件套+10个独享IP、IP续费0.6U、赠KOL转发圈年会员"
+        },
+        {
+          "name": "空投会员·豪华版",
+          "price": "888",
+          "unit": "U / 年",
+          "duration": "1 年",
+          "seats": "1 台脚本设备",
+          "note": "最受欢迎，进阶策略、送100套三件套+100个独享IP、IP续费0.5U、KYC专属特价、赠KOL转发圈年会员"
+        },
+        {
+          "name": "空投会员·一人工作室（OPC）",
+          "price": "1288",
+          "unit": "U / 年",
+          "duration": "1 年",
+          "seats": "1 台脚本设备",
+          "note": "全年辅导支持线下1对1、送200套三件套+200个IP、IP续费<0.49U、TG十年老号1U起、赠KOL转发圈年会员"
+        },
+        {
+          "name": "空投会员·极客版/工作室版",
+          "price": "1888",
+          "unit": "U / 永久",
+          "duration": "永久",
+          "seats": "1 台脚本设备",
+          "note": "含前三档全部权益支持线下，追加高阶内部资源、定制服务器脚本与高级基础设施交付"
+        },
+        {
+          "name": "空投会员·顶配旗舰版/经销商版",
+          "price": "2888",
+          "unit": "U / 永久",
+          "duration": "永久",
+          "seats": "尊享席位",
+          "note": "终极旗舰，享代理销售分成40%~55%、顶级全球精准引流策略、专属企业级独立专线路由"
+        },
+        {
+          "name": "KOL 转发圈·月付",
+          "price": "40",
+          "unit": "U / 月",
+          "duration": "30 天",
+          "seats": "单人",
+          "note": "体验顶级 KOL 策略聚合与链上 AI 监控信号"
+        },
+        {
+          "name": "KOL 转发圈·季付",
+          "price": "88",
+          "unit": "U / 季",
+          "duration": "90 天",
+          "seats": "单人",
+          "note": "立省 32 U"
+        },
+        {
+          "name": "KOL 转发圈·年付",
+          "price": "268",
+          "unit": "U / 年",
+          "duration": "365 天",
+          "seats": "单人",
+          "note": "官方推荐，立省 212 U"
+        },
+        {
+          "name": "KOL 转发圈·终身版",
+          "price": "398",
+          "unit": "U / 永久",
+          "duration": "永久",
+          "seats": "单人",
+          "note": "一次付费，永久享受"
+        }
+      ],
+      "facts": [
+        "Web3 空投军火库业务官方独立站：https://airdrop.web3baimao.com/",
+        "真实成交记录与实盘反馈展示：https://t.me/biqrxnxiYW",
+        "九大业务介绍主站（涵盖真实成交记录与客户好评）：https://web3baimao.com/",
+        "WhiteCat 5.0 获客软件官网介绍与下载：https://tg.web3baimao.com/"
+      ]
+    },
+    {
+      "id": "partner",
+      "line": "partner",
+      "name": "渠道合伙人 · OEM 贴牌",
+      "summary": "合伙人可在线开通、自助充值提卡，并支持以自有名称与标识交付给客户。",
+      "keywords": [
+        "合作",
+        "渠道",
+        "代理",
+        "合伙人",
+        "oem",
+        "贴牌",
+        "分成"
+      ],
+      "features": [
+        "创世合伙人·终身版（399U）可领取合伙人权益"
+      ],
+      "plans": [],
+      "facts": [
+        "分成比例、门槛、底价、结算周期与合同条款官网均未公开，一律不得由 AI 回答，交同事确认"
+      ]
     }
   ],
-  "kol_circle": {
-    "name": "白猫 Web3 核心技术频道",
-    "description": "白猫工作室官方反馈、项目更新发布及最新Web3安全与自动化红利分享圈子",
-    "pricing": [
-      {
-        "plan": "技术合规订阅",
-        "note": "免费加入频道获取最新的开源机器人更新及漏洞预警通知"
-      },
-      {
-        "plan": "开发者社区交流",
-        "note": "欢迎加入官方技术交流群，分享您的反馈，或提交 PR/Issue"
-      }
-    ],
-    "purchase_note": "开源项目持续迭代中，欢迎所有 Web3 极客与开发者加入共同交流学习！"
-  },
-  "payment_methods": {
-    "crypto": {
-      "binance_uid": "000000000",
-      "okx_uid": "000000000",
-      "on_chain_bep20": "0x0000000000000000000000000000000000000000"
-    },
-    "fiat": {
-      "condition": "我们注重开发合作的合规性。大额定制订单支持公司主体签署正式的技术服务合同，支持提供对公银行账户并开具正规发票。请直接联系官方客服 (@oxbaimao) 确认合同条款 and 首笔预付款。"
-    }
-  },
-  "post_payment_info": {
-    "condition": "交付合作款项后，请将付款凭证（哈希值或清晰对公回单截图）发送给主理人或对接技术经理进行排期确认。"
-  },
-  "security": {
-    "anti_sybil": "我们交付的所有定制系统都经过高抗风控环境验证，遵循安全开发规范，并提供针对多开防关联和抗Sybil攻击的技术设计。",
-    "trust": "白猫工作室以口碑立足，所有源码均交付，不含有任何后门或未授权上报代码。重大漏洞及开发缺陷终身免费修复。",
-    "offline": "大额企业采购和工作室批量定制支持签署正式的书面合作合同，支持提供对公账户和增值税发票。"
-  },
+  "policies": [
+    "价格口径：官网价格是公开参考价；成交价以软件内购买页、官方购买机器人或同事出具的报价单为准。",
+    "补差政策（官网主站）：先按散户价体验，24 小时内升级会员或合伙人，差价全额退还。",
+    "质保说明（官网主站）：账号类“无限补号质保”、AI 代充“购买期间无限售后断补”，具体范围以订单约定为准，AI 不得扩大承诺。",
+    "付款证明：客户截图或口头说明不能证明付款成功，付款以官方订单系统或链上记录为准。",
+    "案例与截图：官网展示的案例金额、转账截图不代表任何个案的承诺。",
+    "合规：不承诺绕过平台风控、不承诺任何验证或认证一定通过、不协助冒用他人身份或批量骚扰；遇到此类诉求，礼貌说明无法协助并转同事确认。"
+  ],
   "faq": [
     {
-      "question": "你们定制的智能客服机器人都支持哪些平台和模型？",
-      "answer": "我们支持 Telegram, Discord 等主流社交及办公平台。底层大模型支持 OpenAI 系列、Claude 系列、DeepSeek 以及任何兼容 OpenAI API 的主流模型，同时可根据特定业务需求在本地或私有云中部署自建 RAG 知识库。"
+      "q": "可以先试用吗？",
+      "a": "新设备自带免费试用（时长与限制以软件内显示为准）；也可以购买 6.9U / 3 天的尝鲜体验卡，每台设备限购 1 次。"
     },
     {
-      "question": "定制机器人开发周期一般多久？",
-      "answer": "标准版的双向客服系统仅需 24 小时即可部署完毕交付。对于涉及链上智能合约验资、多账户管理或高度定制化功能的复杂版本，开发周期通常在 3 至 7 个工作日，我们会输出完整的技术需求文档与交付排期。"
+      "q": "软件支持哪些系统？",
+      "a": "Windows 10/11 x64 与 macOS（Apple Silicon、Intel）。安装包与校验和见官方发布页。"
     },
     {
-      "question": "智能合约开发是否提供审计报告？",
-      "answer": "所有的定制智能合约均内置了完整的自动化单元测试与安全筛查。如果项目上线需要展示第三方权威机构的安全审计报告，我们可以代为对接知名的安全审计公司，并免费提供合约修复和技术优化支持。"
+      "q": "在哪里购买软件授权？",
+      "a": "软件内购买页一键购买，卡密自动发放并激活；也可通过官方购买机器人 @oxbaimaobot。"
     },
     {
-      "question": "购买/定制服务后如何保证售后？",
-      "answer": "白猫工作室采用“源码全交付 + 3个月免费包修包保”的售后服务政策。针对后续大厂接口风控和重大系统缺陷，提供24小时内紧急响应排查服务，确保大客户的核心业务流稳定运行。"
+      "q": "安装时系统拦截怎么办？",
+      "a": "官网说明软件暂未购买代码签名，首次运行可能被拦截，请按官方安装指南放行一次。"
     }
   ],
-  "contact": {
-    "customer_service_tg": "@oxbaimao",
-    "bot_tg": "@biqrxnxi_baimaoBOT",
-    "shop_url": "https://web3baimao.com/",
-    "feedback_channel": "https://t.me/oxbaimao",
-    "landing_page": "https://web3baimao.com/"
-  },
-  "scraped_products": [],
-  "scraped_services": [],
-  "last_updated": "2026-05-30T01:30:00"
+  "last_updated": "2026-10-12T20:05:09.096170",
+  "quarantine": {
+    "scraped_products": [
+      {
+        "name": "588U",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "原价 1888U",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "后续独享IP续费仅 0.6u",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "三件套源头价后续加号节省1000u+",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "888U",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "原价 2888U",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "后续独享IP续费仅 0.5u",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "三件套源头价后续加号节省1000u+",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "1288U",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "原价 5888U",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "后续IP续费仅 0.49u以下",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "三件套源头价后续加号节省1000u+",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "TG十年老号源头价首起1u起售",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "1888U",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "原价 8888U",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "2888U",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "原价 12888U",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "40U",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "88U",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "立省32U",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "268U",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "立省212U",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "398U",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "name": "收益受三个因素影响：①账号数量（100个号 × 20u = 2000u）；②项目单号金额（从20U到4000U不等）；③项目时间周期。我们经深入调研，筛选高潜力项目带领大家参与。",
+        "price": "页面文本含价格，成交前请到发卡网确认",
+        "stock": "",
+        "category": "发卡网商品",
+        "source": "https://airdrop.web3baimao.com/"
+      }
+    ],
+    "scraped_services": [
+      {
+        "title": "炒币VS撸空投",
+        "content": "两种策略・不同路径・各有优劣・选择适合自己的 Web3 增长方式",
+        "url": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "title": "什么是撸空投？",
+        "content": "简单来说，就是 Web3 版的\"薅羊毛\"",
+        "url": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "title": "为啥撸空投能赚到钱？",
+        "content": "虚拟币发展特别快，特别是懂王特朗普上台之后非常推崇虚拟货币。很多项目方需要拉融资机构给他融资，资方需要看真实用户数据。所以项目方会以设计任务形式让用户参与到项目宣传中去。",
+        "url": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "title": "白猫是谁？",
+        "content": "Web3 自动化架构师，顶层基建服务商。",
+        "url": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "title": "四大核心业务矩阵",
+        "content": "深入了解白猫工作室如何为你打造全自动 Web3 盈利流水线。",
+        "url": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "title": "会员套餐方案",
+        "content": "选择最适合你的方案，开启 Web3 之旅",
+        "url": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "title": "KOL信息转发圈功能展示",
+        "content": "实时追踪顶级KOL动态，AI智能分析市场趋势",
+        "url": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "title": "KOL信息转发圈详情",
+        "content": "亚洲大型币圈顶级策略实时转发群 — 各大主流KOL策略聚合",
+        "url": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "title": "安全与保障",
+        "content": "我们的脚本基本上都是支持IP隔离、设备模拟，配合指纹浏览器和多环境部署女巫隔离技巧，基本上可以隔绝百分之九十以上的女巫检测。我们有大量的实战经验，大多数项目都是不会被女巫的。",
+        "url": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "title": "纯小白必看：视频介绍及空投常识扫盲",
+        "content": "购买前必读！手把手带入门，无需懂技术也能看懂的保姆级资料库",
+        "url": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "title": "常见问题解答",
+        "content": "赚钱的生意都会有点卷，但撸空投因为需要科学上网加上英文门槛，已经把很多人筛选掉了。现在硅谷乃至全世界，Web3都是热门创业方向，绝大多数人都没接触过虚拟货币，现在加入性价比非常高。",
+        "url": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "title": "真实成交反馈",
+        "content": "来自社群成员的真实收益展示",
+        "url": "https://airdrop.web3baimao.com/"
+      },
+      {
+        "title": "现在就开始你的 Web3 之旅",
+        "content": "加入我们的社群，一起撸空投，把握区块链早期红利！",
+        "url": "https://airdrop.web3baimao.com/"
+      }
+    ]
+  }
 }

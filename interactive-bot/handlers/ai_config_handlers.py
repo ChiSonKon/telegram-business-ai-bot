@@ -4,6 +4,7 @@ from __future__ import annotations
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ApplicationHandlerStop, ContextTypes
 
+from ..admin import permissions
 from .. import admin_user_ids
 from ..ai_settings import (
     add_ai_config,
@@ -56,7 +57,7 @@ def get_ai_select_keyboard() -> InlineKeyboardMarkup:
 async def callback_ai_config(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     admin = query.from_user
-    if admin.id not in admin_user_ids:
+    if not permissions.can(admin.id, "config_edit"):
         await query.answer("No permission", show_alert=True)
         return
 
@@ -93,7 +94,7 @@ async def callback_ai_config(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def handle_admin_ai_config_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """接收管理员下一条私聊文本并保存为 AI 配置。"""
     user = update.effective_user
-    if user.id not in admin_user_ids:
+    if not permissions.can(user.id, "config_edit"):
         return
 
     state = context.user_data.get(ADMIN_AI_CONFIG_STATE)

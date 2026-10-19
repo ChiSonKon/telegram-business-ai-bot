@@ -3,23 +3,25 @@ TG Business 消息处理 — 监听 business_message 事件
 
 当 Bot 被绑定到 Telegram Business 账号后，
 通过该账号的私聊消息会通过 business_message 类型传入。
-注意: business_message 通过 update.business_message 访问，而非 update.message
 """
+import json
 import re
+from typing import Any, Dict
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
+from telegram.helpers import mention_html
 
 from db.database import SessionMaker
-from db.model import User
+from db.model import User, FrontdeskMessage
 
 from .. import (
-    admin_group_id,
     admin_user_ids,
     blacklist_user_ids,
     logger,
     rate_limit_per_minute,
 )
+from ..global_settings import get_admin_group_id
 from ..llm.fallback_client import FallbackLLMClient
 from ..llm.prompt_loader import load_system_prompt
 from ..rag.retriever import search_knowledge
@@ -27,27 +29,29 @@ from ..memory.short_term import ShortTermMemory
 from ..memory.long_term import LongTermMemory
 from ..middleware.state_machine import is_ai_mode, ChatMode, set_chat_mode
 from ..middleware.rate_limiter import RateLimiter
-from .payment_rules import (
-    build_paid_text_message,
-    build_payment_media_message,
-    build_payment_message,
-    update_payment_context,
-)
+from ..humanlike_sender import send_humanlike_messages
+from ..debouncer import debounce_user_message
+from ..commerce.notify import register_receipt
 from .broadcast_handlers import upsert_business_contact
-
-from ..start_settings import build_call_human_markup
+from whitecat_core import runtime
+from ..ai_turn import run_ai_turn, run_first_turn, shared
+from ..frontdesk import abuse
+from ..frontdesk.gate import admit
+from .callback_handlers import challenge_if_abusive
+from ..frontdesk.service import handoff, is_human_locked, record_message
+from ..timeout_tracker import track_activity, dismiss_care
+from ..ui import send_card
+from ..ui.cards import CARE_TEXT, care_markup
 
 # 单例
-_llm_client = FallbackLLMClient()
-_short_memory = ShortTermMemory(max_messages=15)
-_long_memory = LongTermMemory()
+_llm_client, _short_memory, _long_memory = shared()
 _rate_limiter = RateLimiter(default_max=rate_limit_per_minute)
 
 db = SessionMaker()
 
 
 def _clean_markdown(text: str) -> str:
-    """清理 Markdown 格式"""
+    """清理 Markdown 格式（TG 纯文本展示）"""
     text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
     text = re.sub(r'\*(.+?)\*', r'\1', text)
     text = re.sub(r'```[\s\S]*?```', lambda m: m.group().replace('```', ''), text)
@@ -59,26 +63,18 @@ def _clean_markdown(text: str) -> str:
 async def handle_business_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     处理 Telegram Business 接管的消息。
-
-    关键: Business 消息通过 update.business_message 访问，不是 update.message!
     """
-    # 关键修复: 使用 business_message 而非 message
-    message = update.business_message
-    if not message:
-        message = update.message
+    message = update.business_message or update.message
     if not message:
         return
 
     user = message.from_user
-    if not user:
+    if not user or user.is_bot:
         return
 
-    # 关键: 跳过 Bot 自己发出的消息（防止死循环）
-    if user.is_bot:
-        return
-
-    # 风控：跳过管理员的私人聊天（防止在老板私聊中乱回复）
-    if user.id in admin_user_ids:
+    # 风控：跳过管理员的私人聊天
+    from ..admin import sandbox
+    if user.id in admin_user_ids and not sandbox.is_client_view(user.id):
         return
 
     # 黑名单
@@ -87,154 +83,158 @@ async def handle_business_message(update: Update, context: ContextTypes.DEFAULT_
 
     # 限流
     if not _rate_limiter.is_allowed(user.id):
-        return  # Business 模式下静默丢弃
+        abuse.strike(user.id, "rate_limit")
+        return
 
-    user_text = message.text or message.caption or ""
+    user_text = (message.text or message.caption or "").strip()
     biz_conn_id = message.business_connection_id
     upsert_business_contact(message)
 
-    # 付款截图/图片的两次确认流程：即使非文本消息也要处理
-    if not user_text.strip():
-        payment_media_reply = build_payment_media_message(context.user_data)
-        if payment_media_reply:
+    # 记录用户活跃状态（非 AI 回复）
+    track_activity(user.id, message.chat.id, biz_conn_id, is_ai_reply=False)
+
+    # 确保用户记录存在与 Forum Topic 绑定
+    thread_id = None
+    with SessionMaker() as user_db:
+        existing = user_db.query(User).filter(User.user_id == user.id).first()
+        if not existing:
+            existing = User(
+                user_id=user.id,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                username=user.username,
+                chat_mode="AI_MODE",
+            )
+            user_db.add(existing)
+            user_db.commit()
+            user_db.refresh(existing)
+
+        if not existing.message_thread_id:
             try:
-                await context.bot.send_message(
-                    chat_id=message.chat.id,
-                    text=payment_media_reply,
-                    business_connection_id=biz_conn_id,
-                )
+                from .user_handlers import _ensure_forum_topic
+                thread_id = await _ensure_forum_topic(user, existing, context)
             except Exception as e:
-                logger.warning(f"Business payment media reply failed: {e}")
-        return  # 其他非文本消息不处理
+                logger.warning(f"确保 Business 客户 Forum Topic 失败: {e}")
+        else:
+            thread_id = existing.message_thread_id
 
-    # 确保用户存在
-    existing = db.query(User).filter(User.user_id == user.id).first()
-    if not existing:
-        u = User(
-            user_id=user.id,
-            first_name=user.first_name,
-            last_name=user.last_name,
-            username=user.username,
-            chat_mode="AI_MODE",
-        )
-        db.add(u)
-        db.commit()
-
-    # 检查是否要恢复 AI（必须在 is_ai_mode 检查之前，否则会被拦截）
-    if user_text.strip() == "恢复AI" or user_text.strip() == "恢复ai":
-        set_chat_mode(user.id, ChatMode.AI_MODE)
-        biz_conn_id = message.business_connection_id
+    # 转发客户输入到管理群 Forum Topic
+    current_admin_group = get_admin_group_id()
+    if thread_id and user_text:
         try:
             await context.bot.send_message(
-                chat_id=message.chat.id,
-                text="🤖 AI 助手已重新上线！\n\n有什么问题尽管问我，如果需要人工随时发送“转人工”。",
-                business_connection_id=biz_conn_id,
+                chat_id=current_admin_group,
+                text=f"💬 客户 (@{user.username or user.id}):\n{user_text}",
+                message_thread_id=thread_id,
             )
         except Exception:
             pass
+
+    # ═══ 1. 入口护盾:规范化、洪泛/重复折叠(不耗 token、不回复)═══
+    if user_text:
+        shield = runtime.shield.check(user.id, user_text)
+        if not shield.allow:
+            logger.info("shield dropped business msg from %s: %s", user.id, shield.reason)
+            abuse.strike(user.id, shield.reason)
+            return
+        user_text = shield.text
+
+    # 客户发送贴纸时，若处于 AI 模式，自然回发一个互动贴纸
+    if getattr(message, "sticker", None) and is_ai_mode(user.id) and not is_human_locked(user.id):
+        from ..sticker_sender import send_humanlike_sticker
+        await send_humanlike_sticker(context.bot, message.chat.id, "greeting", biz_conn_id)
         return
 
-    # 检查模式
-    if not is_ai_mode(user.id):
-        return  # HUMAN_MODE 下不触发 AI
+    # 语音/圆形视频:暂不支持收听,礼貌请客户打字(人工锁中不打扰)
+    if (getattr(message, "voice", None) or getattr(message, "video_note", None)) and not user_text:
+        if not is_human_locked(user.id):
+            from ..config import copy
+            from ..frontdesk.router import send as fd_send
+            await fd_send(context.bot, user.id, message.chat.id, copy("voice.reply", runtime.lang_for(user.id)), None, biz_conn_id, runtime.lang_for(user.id))
+        return
 
-    # Telegram Business 不支持 Callback 按钮，所以通过关键词触发转人工
-    takeover_keywords = ["转人工", "呼叫人工", "呼叫主理人", "呼叫白猫", "人工客服", "售后"]
-    if any(k in user_text for k in takeover_keywords):
-        set_chat_mode(user.id, ChatMode.HUMAN_MODE)
-        
-        try:
-            await context.bot.send_message(
-                chat_id=message.chat.id,
-                text="🔕 已为您呼叫主理人。\n\n请直接留下您的问题（如需求、报错等），主理人看到后会第一时间回复您！\n如需重新唤醒AI，请回复“恢复AI”。",
-                business_connection_id=biz_conn_id,
-            )
-        except Exception:
-            pass
-            
-        # 通知管理员群
-        u = db.query(User).filter(User.user_id == user.id).first()
-        if u and u.message_thread_id:
+    # 付款截图/图片:只进入"待核验"并通知管理员,绝不视为付款成功
+    if not user_text:
+        if not is_human_locked(user.id):
+            from ..frontdesk.router import note_image_in_intake
+            if not await note_image_in_intake(context.bot, user.id, message.chat.id, biz_conn_id):
+                await register_receipt(context.bot, user.id)
+        return
+
+    record_message(user.id, "in", user_text, channel="business")
+    lang = runtime.lang_for(user.id, user_text)
+
+    # ═══ 2. 人工已锁定:消息已转发给管理群,AI 不介入;待跟进期间回"处理中"卡 ═══
+    if is_human_locked(user.id) or not is_ai_mode(user.id):
+        if is_human_locked(user.id):
+            _short_memory.add(user.id, "user", user_text)
+            from ..frontdesk.router import notify_pending
+            await notify_pending(context.bot, user.id, message.chat.id, biz_conn_id)
+        return
+
+    # ═══ 3. 前台:先预检(规则驱动、零模型),收齐后才交给 AI ═══
+    gate = await admit(context.bot, user.id, message.chat.id, user_text, channel="business", biz_conn_id=biz_conn_id)
+    if gate.care:
+        dismiss_care(user.id)
+        await send_card(context.bot, message.chat.id, CARE_TEXT, care_markup(user.id), biz_conn_id)
+        return
+    if not gate.ai:
+        return
+
+    # 仅在频繁超额调用 AI 时才要求人机验证
+    if await challenge_if_abusive(context.bot, message.chat.id, user, context, lang, biz_conn_id):
+        return
+
+    if gate.immediate:
+        await run_first_turn(context.bot, user.id, message.chat.id, gate.texts, biz_conn_id)
+        return
+
+    # ═══ 4. AI 回合(防抖合并 → 统一网关)═══
+    logger.info("Business msg from %s accepted (len=%d)", user.id, len(user_text))
+    wants_voice = any(k in user_text for k in VOICE_REQUEST_KEYWORDS)
+    ticket = runtime.epochs.ticket(runtime.epoch_key(user.id))
+
+    async def _mirror(reply, _sent):
+        if thread_id:
+            await context.bot.send_message(current_admin_group, f"🤖 AI 回复客户:\n\n{reply}", message_thread_id=thread_id)
+
+    async def _do_business_ai(texts: list[str]):
+        await run_ai_turn(
+            bot=context.bot, user_id=user.id, chat_id=message.chat.id, texts=texts, llm=_llm_client,
+            short_memory=_short_memory, long_memory=_long_memory, ticket=ticket,
+            biz_conn_id=biz_conn_id, wants_voice=wants_voice, mirror=_mirror,
+        )
+
+    await debounce_user_message(user.id, user_text, _do_business_ai)
+
+
+VOICE_REQUEST_KEYWORDS = [
+    "发语音", "发条语音", "能语音吗", "能发语音吗", "听听声音", "发段语音", "说句话", "语音聊", "发一条语音", "说两句", "来句语音",
+    "voice message", "send a voice", "voice note",
+]
+
+
+async def handle_edited_business_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Edited Business messages replace pending text or are mirrored without a second AI turn."""
+    message = getattr(update, "edited_business_message", None) or getattr(update, "edited_message", None)
+    if not message or not message.from_user or message.from_user.is_bot:
+        return
+    text = (message.text or message.caption or "").strip()
+    if not text:
+        return
+    uid, mid = message.from_user.id, message.message_id
+    with SessionMaker() as db:
+        row = db.query(FrontdeskMessage).filter_by(user_id=uid, message_id=mid, direction="in").first()
+        if row:
+            row.text = text[:12000]
+            db.commit()
+    if row:
+        with SessionMaker() as db:
+            user = db.query(User).filter(User.user_id == uid).first()
+        if user and user.message_thread_id:
             try:
-                from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-                from telegram.helpers import mention_html
-                keyboard_admin = InlineKeyboardMarkup([
-                    [
-                        InlineKeyboardButton("🔕 接管对话", callback_data=f"admin_takeover_{user.id}"),
-                        InlineKeyboardButton("🤖 恢复 AI", callback_data=f"admin_restore_{user.id}"),
-                    ]
-                ])
-                await context.bot.send_message(
-                    admin_group_id,
-                    (
-                        f"🚨🚨🚨 客户请求人工介入 🚨🚨🚨\n\n"
-                        f"👤 {mention_html(user.id, user.full_name)}\n"
-                        f"📱 {user.id}\n\n"
-                        f"💬 客户说: {user_text}\n"
-                    ),
-                    message_thread_id=u.message_thread_id,
-                    reply_markup=keyboard_admin,
-                    parse_mode="HTML",
-                )
+                await context.bot.send_message(get_admin_group_id(), f"✏️ 客户编辑了消息 (@{user.username or uid}):\n{text}", message_thread_id=user.message_thread_id)
             except Exception:
                 pass
         return
-
-    logger.info(f"Business msg from {user.first_name}({user.id}), chat={message.chat.id}, biz_conn={message.business_connection_id}")
-
-    try:
-        # AI Pipeline
-        rag_context = search_knowledge(user_text)
-        system_prompt = load_system_prompt()
-        _short_memory.add(user.id, "user", user_text)
-        messages = _short_memory.get_history(user.id)
-        long_term_ctx = _long_memory.get_user_summary(user.id, user_text)
-
-        ai_reply = await _llm_client.chat(
-            system_prompt=system_prompt,
-            messages=messages,
-            rag_context=rag_context,
-            long_term_context=long_term_ctx,
-        )
-
-        _short_memory.add(user.id, "assistant", ai_reply)
-        _long_memory.store(user.id, f"User: {user_text}\nAI: {ai_reply[:200]}")
-
-        # 清理 Markdown
-        clean_reply = _clean_markdown(ai_reply)
-        if len(clean_reply) > 4000:
-            clean_reply = clean_reply[:4000] + "\n\n...(content truncated)"
-
-        # Business 消息不支持 InlineKeyboard，只发文本
-        # 尝试多种回复方式
-        sent = False
-
-        # 方式1: 通过 business_connection_id 发送
-        if biz_conn_id and not sent:
-            try:
-                await context.bot.send_message(
-                    chat_id=message.chat.id,
-                    text=clean_reply,
-                    business_connection_id=biz_conn_id,
-                )
-                sent = True
-                logger.info(f"Business reply sent via biz_conn to {user.id}")
-            except Exception as e1:
-                logger.warning(f"biz_conn send failed: {e1}")
-
-        # 方式2: 直接发给用户（通过 bot 私聊）
-        if not sent:
-            try:
-                keyboard = build_call_human_markup(user.id)
-                await context.bot.send_message(
-                    chat_id=user.id,
-                    text=clean_reply,
-                    reply_markup=keyboard,
-                )
-                sent = True
-                logger.info(f"Business reply sent via direct to {user.id}")
-            except Exception as e2:
-                logger.warning(f"Direct send also failed: {e2}")
-
-    except Exception as e:
-        logger.error(f"Business AI Pipeline error: {e}", exc_info=True)
+    await handle_business_message(update, context)

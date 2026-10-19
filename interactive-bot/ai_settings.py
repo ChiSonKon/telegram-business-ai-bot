@@ -14,6 +14,7 @@ from db.database import SessionMaker, engine
 from db.model import AppSetting
 
 from . import llm_api_base, llm_api_key, llm_model
+from .llm.client import normalize_model_name
 
 
 SETTING_AI_CONFIGS = "ai.configs"
@@ -81,7 +82,7 @@ def _normalize_config(item: dict[str, Any], index: int = 0) -> dict[str, Any]:
     name = str(item.get("name") or f"AI-{index + 1}").strip()
     base_url = str(item.get("base_url") or item.get("api_base") or "").strip().rstrip("/")
     api_key = str(item.get("api_key") or "").strip()
-    model = str(item.get("model") or "").strip()
+    model = normalize_model_name(base_url, str(item.get("model") or "").strip())
     config_id = str(item.get("id") or _slug(name) or uuid.uuid4().hex[:8]).strip()
     try:
         priority = int(item.get("priority", index + 1) or index + 1)
@@ -170,7 +171,7 @@ def add_ai_config(name: str, base_url: str, api_key: str, model: str, enabled: b
             "name": name,
             "base_url": base_url,
             "api_key": api_key,
-            "model": model,
+            "model": normalize_model_name(base_url, model),
             "enabled": enabled,
             "priority": len(configs) + 1,
         }
@@ -298,7 +299,7 @@ def get_ai_config_help(mode: str = "add") -> str:
         f"请发送{title}，格式：\n"
         "名称 | API Base | API Key | 模型 | 启用(可选 yes/no)\n\n"
         "示例：\n"
-        "DeepSeek | https://api.deepseek.com/v1 | sk-xxxx | deepseek-chat | yes\n"
+        "DeepSeek | https://api.deepseek.com/v1 | sk-xxxx | deepseek-flash | yes\n"
         "OpenAI | https://api.openai.com/v1 | sk-xxxx | gpt-4o-mini | yes\n"
         "Ollama | http://localhost:11434/v1 | ollama | llama3.1 | no\n\n"
         "说明：\n"

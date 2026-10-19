@@ -25,7 +25,7 @@ OUTPUT_FILE = os.path.join(
 )
 
 
-async def scrape_shop(url: str = "https://web3baimao.com/") -> list[dict]:
+async def scrape_shop(url: str = "https://airdrop.web3baimao.com/") -> list[dict]:
     """抓取发卡网商品列表和价格"""
     products = []
     try:
@@ -127,13 +127,18 @@ async def run_scraper(output_path: str = None):
             pass
 
     # 抓取新数据（显式传入目标 URL）
-    shop_products = await scrape_shop("https://web3baimao.com/")
-    airdrop_services = await scrape_airdrop_intro("https://web3baimao.com/")
+    shop_products = await scrape_shop("https://airdrop.web3baimao.com/")             # 空投站:会员方案等商品
+    airdrop_services = await scrape_airdrop_intro("https://airdrop.web3baimao.com/")  # 空投站:业务介绍区块
+    main_services = await scrape_airdrop_intro("https://web3baimao.com/")             # 主站:综合业务介绍(与空投站分开存放)
 
     # 每次都更新对应字段；为空也写入，便于判断卡网是否抓取失败
-    existing["scraped_products"] = shop_products
-
-    existing["scraped_services"] = airdrop_services
+    # 抓取内容一律写入隔离区 quarantine:不注入 AI、不授权金额(03 §9.2)
+    quarantine = existing.setdefault("quarantine", {})
+    quarantine["scraped_products"] = shop_products
+    quarantine["scraped_services"] = airdrop_services
+    quarantine["scraped_main_site"] = main_services
+    existing.pop("scraped_products", None)
+    existing.pop("scraped_services", None)
 
     existing["last_updated"] = datetime.now().isoformat()
 
